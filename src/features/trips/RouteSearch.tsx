@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { searchRoutes, fetchRoute } from "./utno";
 import { useTrips } from "@/context/TripContext";
 import { downloadTilesForBounds } from "@/features/map/downloadTiles";
@@ -46,6 +47,8 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
   const [results, setResults] = useState<UtnoRoute[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const router = useRouter();
   const { trips, createTrip, saveTrip, deleteTrip } = useTrips();
   const {
     activeFilters,
@@ -104,6 +107,26 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
         [Math.min(...lats), Math.min(...lons)],
         [Math.max(...lats), Math.max(...lons)],
       ]);
+    }
+  }
+
+  async function handleShare(trip: Trip) {
+    setSharingId(trip.id);
+    try {
+      const res = await fetch("/api/trips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trip.name,
+          routeIds: trip.routes.map((r) => r.id),
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+        }),
+      });
+      const { id } = await res.json();
+      router.push(`/tur/${id}`);
+    } catch {
+      setSharingId(null);
     }
   }
 
@@ -249,13 +272,23 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
                   className="flex items-center justify-between rounded bg-green-50 px-2 py-1 text-xs cursor-pointer hover:bg-green-100"
                   onClick={() => handleFocusTrip(trip)}
                 >
-                  <span>{trip.name}</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteTrip(trip.id); }}
-                    className="text-gray-400 hover:text-red-500"
-                  >
-                    ✕
-                  </button>
+                  <span className="truncate flex-1">{trip.name}</span>
+                  <div className="flex items-center gap-1 ml-1 shrink-0">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleShare(trip); }}
+                      title="Kopier delingslenke"
+                      disabled={sharingId === trip.id}
+                      className="rounded bg-green-600 px-2 py-0.5 text-white hover:bg-green-700 text-xs disabled:opacity-60"
+                    >
+                      {sharingId === trip.id ? "…" : "Opprett tur"}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteTrip(trip.id); }}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
