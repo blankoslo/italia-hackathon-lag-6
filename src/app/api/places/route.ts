@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 interface StedsnamnResponse {
   navn: Array<{
     skrivemåte: string;
+    navneobjekttype?: string;
     representasjonspunkt: { nord: number; øst: number };
+    kommuner?: Array<{ kommunenummer: string; kommunenavn: string }>;
+    fylker?: Array<{ fylkesnummer: string; fylkesnavn: string }>;
   }>;
 }
 
@@ -36,6 +39,9 @@ export async function GET(request: NextRequest) {
     name: sted.skrivemåte ?? "Ukjent",
     lat: sted.representasjonspunkt.nord,
     lon: sted.representasjonspunkt.øst,
+    municipality: sted.kommuner?.[0]?.kommunenavn,
+    county: sted.fylker?.[0]?.fylkesnavn,
+    placeType: sted.navneobjekttype,
   }));
 
   return NextResponse.json(places);

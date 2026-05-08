@@ -7,8 +7,8 @@ When creating features or being asked by us to create features - be sure to chec
 
 - [x] GS1 Live URL (5p) — Produktet er deployet til en URL (Vercel, Netlify, Cloudflare) med eget innhold. Klikkbar og delbar.
 - [ ] GS2 LLM-drevet WCAG-verifisering (10p) — Appen er testet mot WCAG 2.1 AA. Dokumenter hvilke krav dere har sjekket og hvilke verktøy dere brukte.
-- [ ] GS3 Design brief that works (10p) — Designbrief som gir Claude nok kontekst og et skjermbilde generert direkte fra briefen.
-- [ ] GS4 AI-driven Code review (15p) — Minst en meningsfull code review. Vis reviewen og hva som ble endret.
+- [x] GS3 Design brief that works (10p) — Designbrief som gir Claude nok kontekst og et skjermbilde generert direkte fra briefen.
+- [x] GS4 AI-driven Code review (15p) — Minst en meningsfull code review. Vis reviewen og hva som ble endret.
 - [ ] GS5 AI-driven Design review skill (15p) — Minst en meningsfull design review. Vis reviewen og hva som ble endret.
 
 ## Design
@@ -25,7 +25,7 @@ When creating features or being asked by us to create features - be sure to chec
 - [ ] TE2 Streng review av AI-kode (25p) — Tre eksempler der AI-kode er gjennomgått med kritisk blikk og enten forbedret, refaktorert eller forkastet.
 - [ ] TE3 Tester for kjerneflyt (35p) — Minst tre meningsfulle tester (unit, integration eller e2e) som dekker en sentral brukerflyt.
 - [x] TE4 Code-review skill (40p) — Claude-skill som gjennomfører strukturert code review og som oppdaterer seg selv basert på feedback underveis. Kjør skillen mot minst én kodefil og vis frem resultatet.
-- [ ] TE5 To eksterne API-er integrert (40p) — Live data fra minst to eksterne API-er (Yr, Kartverket, Entur, DNT, iNatur) vist på en meningsfull måte i UI-et.
+- [x] TE5 To eksterne API-er integrert (40p) — Live data fra minst to eksterne API-er (Yr, Kartverket, Entur, DNT, iNatur) vist på en meningsfull måte i UI-et.
 
 ## Functional
 
@@ -36,7 +36,7 @@ When creating features or being asked by us to create features - be sure to chec
 - [ ] F5 Invitere deltakere (25p) — Turplanlegger kan invitere andre via lenke eller brukernavn.
 - [ ] F6 AI-pakkeliste (30p) — AI-generert pakkeliste basert på vær, varighet og antall deltakere.
 - [ ] F7 Rute og tidslinje (30p) — Turplanlegger kan sette opp daglige etapper med estimert gangtid.
-- [ ] F8 Offline tilgang (40p) — Bruker kan laste ned turdata for offline bruk under turen.
+- [x] F8 Offline tilgang (40p) — Bruker kan laste ned turdata for offline bruk under turen.
 - [ ] F9 Etteroppgjør (40p) — Gruppeleder kan registrere utgifter og se oppgjørsoversikt.
 - [ ] F10 Discover-journey (35p) — F1 + F2 + minst én ekstra Discover-historie.
 - [ ] F11 Kartopplevelsen komplett (40p) — F3 + F4 + minst to Decide-historier.
