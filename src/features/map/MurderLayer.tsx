@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { Circle, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import murdersData from "@/data/murders.json";
 
@@ -27,6 +27,37 @@ interface Cluster {
 }
 
 const murders = murdersData as Murder[];
+
+interface Hotspot {
+  lat: number;
+  lng: number;
+  count: number;
+}
+
+function computeHotspots(): Hotspot[] {
+  const cellSize = 0.25;
+  const cells = new Map<string, { latSum: number; lngSum: number; count: number }>();
+  for (const m of murders) {
+    const lat = parseFloat(m.lat);
+    const lng = parseFloat(m.lng);
+    const key = `${Math.floor(lat / cellSize)}_${Math.floor(lng / cellSize)}`;
+    const existing = cells.get(key);
+    if (existing) {
+      existing.latSum += lat;
+      existing.lngSum += lng;
+      existing.count++;
+    } else {
+      cells.set(key, { latSum: lat, lngSum: lng, count: 1 });
+    }
+  }
+  return Array.from(cells.values()).map(({ latSum, lngSum, count }) => ({
+    lat: latSum / count,
+    lng: lngSum / count,
+    count,
+  }));
+}
+
+const HOTSPOTS = computeHotspots();
 
 function makeSkullIcon(): L.DivIcon {
   return L.divIcon({
@@ -166,6 +197,19 @@ export function MurderLayer() {
 
   return (
     <>
+      {HOTSPOTS.map((spot, i) => {
+        const radius = Math.min(3000 + Math.sqrt(spot.count) * 2500, 30000);
+        const fillOpacity = Math.min(0.06 + Math.sqrt(spot.count) * 0.025, 0.35);
+        return (
+          <Circle
+            key={i}
+            center={[spot.lat, spot.lng]}
+            radius={radius}
+            pathOptions={{ stroke: false, fillColor: "#dc2626", fillOpacity }}
+          />
+        );
+      })}
+
       {clusters.map((cluster) =>
         cluster.items.length === 1 ? (
           <Marker
