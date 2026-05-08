@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { MapViewClient } from "../MapViewClient";
 
 const mockFlyTo = jest.fn();
+const mockAddLayer = jest.fn();
+const mockRemoveLayer = jest.fn();
 
 jest.mock("react-leaflet", () => ({
   MapContainer: ({ children }: { children: React.ReactNode }) => (
@@ -11,10 +13,18 @@ jest.mock("react-leaflet", () => ({
   TileLayer: ({ attribution, url }: { attribution: string; url: string }) => (
     <div data-testid="tile-layer" data-attribution={attribution} data-url={url} />
   ),
-  useMap: () => ({ flyTo: mockFlyTo }),
+  useMap: () => ({
+    flyTo: mockFlyTo,
+    addLayer: mockAddLayer,
+    removeLayer: mockRemoveLayer,
+  }),
 }));
 
-beforeEach(() => mockFlyTo.mockClear());
+beforeEach(() => {
+  mockFlyTo.mockClear();
+  mockAddLayer.mockClear();
+  mockRemoveLayer.mockClear();
+});
 
 describe("MapViewClient", () => {
   it("renders the map container and Kartverket tile layer", () => {
