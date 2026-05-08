@@ -1,3 +1,9 @@
+export interface RouteWaypoint {
+  name: string;
+  lat: number;
+  lon: number;
+}
+
 export interface UtnoRoute {
   id: string;
   name: string;
@@ -7,6 +13,8 @@ export interface UtnoRoute {
   durationDays?: number;
   difficulty?: string; // EASY | MODERATE | TOUGH | VERY_TOUGH
   coordinates?: [number, number][]; // [lng, lat] pairs for map rendering
+  elevations?: number[]; // meters asl, parallel to coordinates
+  waypoints?: RouteWaypoint[]; // named stops along the route (cabins, summits)
   url?: string;
 }
 
