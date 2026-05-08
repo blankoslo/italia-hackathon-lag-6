@@ -62,15 +62,28 @@ export function LocationSearch() {
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       {results.length > 0 && (
         <ul className="absolute z-[1000] mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
-          {results.map((place, i) => (
-            <li
-              key={i}
-              onMouseDown={() => handleSelect(place)}
-              className="cursor-pointer px-4 py-2 text-sm hover:bg-blue-50"
-            >
-              {place.name}
-            </li>
-          ))}
+          {results.map((place, i) => {
+            const sub = [place.municipality, place.county]
+              .filter(Boolean)
+              .join(", ");
+            return (
+              <li
+                key={i}
+                onMouseDown={() => handleSelect(place)}
+                className="cursor-pointer px-4 py-2 text-sm hover:bg-blue-50"
+              >
+                <span className="font-medium">{place.name}</span>
+                {place.placeType && (
+                  <span className="ml-1 text-xs text-gray-400">
+                    {place.placeType}
+                  </span>
+                )}
+                {sub && (
+                  <span className="block text-xs text-gray-500">{sub}</span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
