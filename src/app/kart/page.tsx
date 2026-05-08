@@ -5,6 +5,8 @@ import { LocationSearch } from "@/features/map/LocationSearch";
 import { RouteSearch } from "@/features/trips/RouteSearch";
 import { useLocation } from "@/context/LocationContext";
 import { useTrips } from "@/context/TripContext";
+import { downloadTilesForBounds } from "@/features/map/downloadTiles";
+import type { UtnoRoute } from "@/types/trip";
 
 type LatLngBounds = [[number, number], [number, number]];
 
@@ -20,8 +22,24 @@ const MapViewClient = dynamic(
 
 export default function KartPage() {
   const { location } = useLocation();
-  const { trips } = useTrips();
+  const { trips, createTrip, saveTrip } = useTrips();
   const [focusBounds, setFocusBounds] = useState<LatLngBounds | null>(null);
+  const [searchResults, setSearchResults] = useState<UtnoRoute[]>([]);
+
+  async function saveRouteFromMap(route: UtnoRoute) {
+    const trip = createTrip(route.name);
+    trip.routes = [route];
+    saveTrip(trip);
+    const coords = route.coordinates ?? [];
+    if (coords.length) {
+      const lats = coords.map(([, lat]) => lat);
+      const lons = coords.map(([lon]) => lon);
+      downloadTilesForBounds([
+        [Math.min(...lats), Math.min(...lons)],
+        [Math.max(...lats), Math.max(...lons)],
+      ]);
+    }
+  }
 
   return (
     <div className="flex h-screen flex-col">
@@ -39,7 +57,10 @@ export default function KartPage() {
       </header>
       <main className="relative flex-1 min-h-0 flex">
         <aside className="w-72 shrink-0 overflow-y-auto border-r bg-white p-3">
-          <RouteSearch onFocus={setFocusBounds} />
+          <RouteSearch
+            onFocus={setFocusBounds}
+            onResultsChange={setSearchResults}
+          />
         </aside>
         <div className="relative flex-1">
           <div className="absolute inset-0">
@@ -47,6 +68,8 @@ export default function KartPage() {
               location={location}
               trips={trips}
               focusBounds={focusBounds}
+              searchResults={searchResults}
+              onSaveRoute={saveRouteFromMap}
             />
           </div>
         </div>

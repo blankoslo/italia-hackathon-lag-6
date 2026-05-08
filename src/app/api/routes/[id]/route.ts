@@ -10,7 +10,9 @@ const ROUTE_QUERY = `
       name
       distance
       gradingAb
+      durationDaysAb
       durationHoursAb
+      durationMinutesAb
       placeA
       placeB
       geojson
@@ -23,7 +25,9 @@ interface UtnoRouteDetail {
   name: string;
   distance?: number;
   gradingAb?: string;
+  durationDaysAb?: number;
   durationHoursAb?: number;
+  durationMinutesAb?: number;
   placeA?: string;
   placeB?: string;
   geojson?: { type: string; coordinates: [number, number, number][] };
@@ -72,7 +76,9 @@ export async function GET(
     description:
       node.placeA && node.placeB ? `${node.placeA} → ${node.placeB}` : undefined,
     distanceKm: node.distance != null ? node.distance / 1000 : undefined,
-    durationMinutes: node.durationHoursAb != null ? node.durationHoursAb * 60 : undefined,
+    durationMinutes:
+      (node.durationHoursAb ?? 0) * 60 + (node.durationMinutesAb ?? 0) || undefined,
+    durationDays: node.durationDaysAb ?? undefined,
     difficulty: node.gradingAb ?? undefined,
     coordinates,
   });

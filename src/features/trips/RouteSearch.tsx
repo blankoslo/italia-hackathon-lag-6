@@ -1,11 +1,30 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { searchRoutes, fetchRoute } from "./utno";
 import { useTrips } from "@/context/TripContext";
 import { downloadTilesForBounds } from "@/features/map/downloadTiles";
+import { useRouteFilters, CATEGORY_CONFIG, ALL_CATEGORIES } from "./filters";
 import type { UtnoRoute, Trip } from "@/types/trip";
 
 type LatLngBounds = [[number, number], [number, number]];
+
+const DIFFICULTY_LABELS: Record<string, { label: string; className: string }> = {
+  EASY:       { label: "Enkel",          className: "bg-green-100 text-green-800" },
+  MODERATE:   { label: "Middels",        className: "bg-yellow-100 text-yellow-800" },
+  TOUGH:      { label: "Krevende",       className: "bg-orange-100 text-orange-800" },
+  VERY_TOUGH: { label: "Meget krevende", className: "bg-red-100 text-red-800" },
+};
+
+function DifficultyChip({ difficulty }: { difficulty?: string }) {
+  if (!difficulty) return null;
+  const cfg = DIFFICULTY_LABELS[difficulty];
+  if (!cfg) return <span className="text-gray-400 text-xs">{difficulty}</span>;
+  return (
+    <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${cfg.className}`}>
+      {cfg.label}
+    </span>
+  );
+}
 
 function boundsFromCoordinates(coords: [number, number][]): LatLngBounds | null {
   if (!coords.length) return null;
@@ -19,23 +38,37 @@ function boundsFromCoordinates(coords: [number, number][]): LatLngBounds | null 
 
 interface Props {
   onFocus?: (bounds: LatLngBounds) => void;
+  onResultsChange?: (routes: UtnoRoute[]) => void;
 }
 
-export function RouteSearch({ onFocus }: Props) {
+export function RouteSearch({ onFocus, onResultsChange }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UtnoRoute[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { trips, createTrip, saveTrip, deleteTrip } = useTrips();
+  const {
+    activeFilters,
+    toggle,
+    filterTrips,
+    filterRoutes,
+    mostRestrictiveFilter,
+    mostRestrictiveRouteFilter,
+  } = useRouteFilters();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
+  async function runSearch(q: string) {
+    if (!q.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const { routes } = await searchRoutes(query);
-      setResults(routes);
+      const { routes } = await searchRoutes(q);
+      // Search results lack duration/difficulty; fetch details so filters work.
+      const enriched = await Promise.all(
+        routes.map((r) => fetchRoute(r.id).catch(() => r))
+      );
+      setResults(enriched);
+      onResultsChange?.(enriched);
     } catch {
       setError("Søk feilet — sjekk nettilgang");
     } finally {
@@ -43,96 +76,190 @@ export function RouteSearch({ onFocus }: Props) {
     }
   }
 
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.length >= 3) {
+      debounceRef.current = setTimeout(() => runSearch(query), 400);
+    }
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    runSearch(query);
+  }
+
   async function handleSave(route: UtnoRoute) {
-    const full = await fetchRoute(route.id);
-    const trip = createTrip(route.name);
+    const full = route.coordinates?.length ? route : await fetchRoute(route.id);
+    const trip = createTrip(full.name);
     trip.routes = [full];
     saveTrip(trip);
-
     const coords = full.coordinates ?? [];
     if (coords.length) {
       const lats = coords.map(([, lat]) => lat);
       const lons = coords.map(([lon]) => lon);
-      const bounds: [[number, number], [number, number]] = [
+      downloadTilesForBounds([
         [Math.min(...lats), Math.min(...lons)],
         [Math.max(...lats), Math.max(...lons)],
-      ];
-      // fire and forget — runs in background
-      downloadTilesForBounds(bounds);
+      ]);
     }
   }
 
-  function handleFocus(trip: Trip) {
+  function handleFocusTrip(trip: Trip) {
     const coords = trip.routes.flatMap((r) => r.coordinates ?? []);
     const bounds = boundsFromCoordinates(coords);
     if (bounds) onFocus?.(bounds);
   }
 
+  function handleFocusRoute(route: UtnoRoute) {
+    const bounds = boundsFromCoordinates(route.coordinates ?? []);
+    if (bounds) onFocus?.(bounds);
+  }
+
   const savedIds = new Set(trips.flatMap((t) => t.routes.map((r) => r.id)));
+  const filteredResults = filterRoutes(results);
+  const filteredTrips = filterTrips(trips);
+  const hasFilters = activeFilters.size > 0;
+  const showFilters = results.length > 0 || trips.length > 0;
+
+  const resultSuggestion =
+    hasFilters && results.length > 0 && filteredResults.length === 0
+      ? mostRestrictiveRouteFilter(results)
+      : null;
+
+  const tripSuggestion =
+    hasFilters && trips.length > 0 && filteredTrips.length === 0
+      ? mostRestrictiveFilter(trips)
+      : null;
 
   return (
     <div className="flex flex-col gap-3">
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch}>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Søk turruter på ut.no…"
-          className="flex-1 rounded border px-2 py-1 text-sm"
+          className="w-full rounded border px-2 py-1 text-sm"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-green-600 px-3 py-1 text-sm text-white disabled:opacity-50"
-        >
-          {loading ? "…" : "Søk"}
-        </button>
       </form>
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
-      {results.length > 0 && (
+      {loading && (
         <ul className="flex flex-col gap-1">
-          {results.map((route) => (
-            <li key={route.id} className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2 text-xs">
-              <div>
-                <p className="font-medium">{route.name}</p>
-                <p className="text-gray-500">
-                  {route.distanceKm != null && `${route.distanceKm.toFixed(1)} km`}
-                  {route.difficulty && ` · ${route.difficulty}`}
-                </p>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse" />
+                <div className="h-3 w-1/3 rounded bg-gray-200 animate-pulse" />
               </div>
-              <button
-                onClick={() => handleSave(route)}
-                disabled={savedIds.has(route.id)}
-                className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300"
-              >
-                {savedIds.has(route.id) ? "Lagret" : "Lagre"}
-              </button>
+              <div className="h-5 w-10 shrink-0 rounded bg-gray-200 animate-pulse" />
             </li>
           ))}
         </ul>
       )}
 
+      {showFilters && (
+        <div>
+          <p className="mb-1 text-xs font-semibold text-gray-600">Filtrer turer</p>
+          <div className="flex flex-wrap gap-1">
+            {ALL_CATEGORIES.map((cat) => {
+              const active = activeFilters.has(cat);
+              return (
+                <button
+                  key={cat}
+                  onClick={() => toggle(cat)}
+                  title={CATEGORY_CONFIG[cat].description}
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                    active
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {CATEGORY_CONFIG[cat].label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {results.length > 0 && (
+        <div>
+          {filteredResults.length === 0 ? (
+            <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+              Ingen søkeresultater matcher filtrene.
+              {resultSuggestion && (
+                <button className="ml-1 underline" onClick={() => toggle(resultSuggestion)}>
+                  Fjern «{CATEGORY_CONFIG[resultSuggestion].label}»?
+                </button>
+              )}
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {filteredResults.map((route) => (
+                <li
+                  key={route.id}
+                  className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2 text-xs cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleFocusRoute(route)}
+                >
+                  <div>
+                    <p className="font-medium">{route.name}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {route.distanceKm != null && (
+                        <span className="text-gray-500">{route.distanceKm.toFixed(1)} km</span>
+                      )}
+                      <DifficultyChip difficulty={route.difficulty} />
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleSave(route); }}
+                    disabled={savedIds.has(route.id)}
+                    className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300"
+                  >
+                    {savedIds.has(route.id) ? "Lagret" : "Lagre"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {trips.length > 0 && (
         <div>
           <p className="mb-1 text-xs font-semibold text-gray-600">Mine turer (lagret offline)</p>
-          <ul className="flex flex-col gap-1">
-            {trips.map((trip) => (
-              <li
-                key={trip.id}
-                className="flex items-center justify-between rounded bg-green-50 px-2 py-1 text-xs cursor-pointer hover:bg-green-100"
-                onClick={() => handleFocus(trip)}
-              >
-                <span>{trip.name}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteTrip(trip.id); }}
-                  className="text-gray-400 hover:text-red-500"
-                >
-                  ✕
+
+          {filteredTrips.length === 0 ? (
+            <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+              Ingen turer matcher filtrene.
+              {tripSuggestion && (
+                <button className="ml-1 underline" onClick={() => toggle(tripSuggestion)}>
+                  Fjern «{CATEGORY_CONFIG[tripSuggestion].label}»?
                 </button>
-              </li>
-            ))}
-          </ul>
+              )}
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {filteredTrips.map((trip) => (
+                <li
+                  key={trip.id}
+                  className="flex items-center justify-between rounded bg-green-50 px-2 py-1 text-xs cursor-pointer hover:bg-green-100"
+                  onClick={() => handleFocusTrip(trip)}
+                >
+                  <span>{trip.name}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteTrip(trip.id); }}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

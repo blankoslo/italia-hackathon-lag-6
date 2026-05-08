@@ -4,7 +4,8 @@ export interface UtnoRoute {
   description?: string;
   distanceKm?: number;
   durationMinutes?: number;
-  difficulty?: string;
+  durationDays?: number;
+  difficulty?: string; // EASY | MODERATE | TOUGH | VERY_TOUGH
   coordinates?: [number, number][]; // [lng, lat] pairs for map rendering
   url?: string;
 }
