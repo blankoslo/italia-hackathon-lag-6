@@ -380,3 +380,33 @@ Medium Priority
     Consistent code style
     Performance optimizations justified
 
+---
+
+## How to run this review
+
+When invoked via `/nextjs-review [file]`:
+
+1. **Read the target file(s)** — use the path from args, or ask the user if none given.
+2. **Work through the checklist above** section by section. Skip sections clearly irrelevant to the file (e.g. skip Middleware for a plain page component).
+3. **Report findings** with severity and location:
+   - 🔴 Critical — security issue or broken functionality
+   - 🟡 High — important but not breaking
+   - 🔵 Medium — code quality / best practice
+   - ⚪ Low — minor / optional
+   Format each as: `🔴 **Security** · \`src/app/api/route.ts:12\` — API key exposed in client bundle`
+4. **If the file is clean on a section**, note it briefly: `✅ Server/Client separation — looks correct`
+5. **After the report**, ask the user: *"Were any findings unhelpful or wrong? Did I miss anything?"*
+6. **Self-improve** — based on the user's response, edit THIS file (`.claude/skills/nextjs-review/SKILL.md`) using the Edit tool:
+   - Add new checks to the relevant section if something was missed
+   - Remove or refine checks that were false positives
+   - Append a dated entry to the **Learned patterns** section below
+   Keep edits minimal and precise — don't rewrite sections that didn't change.
+
+---
+
+## Learned patterns
+
+<!-- Claude appends entries here after each review session. Format:
+### YYYY-MM-DD — <file reviewed>
+<what was learned or changed> -->
+
