@@ -44,7 +44,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       id: crypto.randomUUID(),
       name,
       routes: [],
-      cabinIds: [],
+      cabins: [],
       participantIds: [],
     }),
     []
