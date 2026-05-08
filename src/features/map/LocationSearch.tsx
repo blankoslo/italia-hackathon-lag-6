@@ -15,12 +15,12 @@ export function LocationSearch() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-
     debounceRef.current = setTimeout(async () => {
+      if (query.trim().length < 2) {
+        setResults([]);
+        setError(null);
+        return;
+      }
       setIsLoading(true);
       setError(null);
       try {
