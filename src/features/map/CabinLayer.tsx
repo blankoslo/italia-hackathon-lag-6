@@ -203,6 +203,25 @@ function CabinDialog({ cabin, detail, loading, onClose }: CabinDialogProps) {
   );
 }
 
+// Pure helper — no state, returns data so callers decide when to setState
+async function loadCabinsForViewport(
+  map: L.Map,
+  signal: AbortSignal,
+): Promise<Cabin[]> {
+  const center = map.getCenter();
+  const bounds = map.getBounds();
+  const latSpan = bounds.getNorth() - bounds.getSouth();
+  const lonSpan = bounds.getEast() - bounds.getWest();
+  const radiusDeg = Math.sqrt(latSpan * latSpan + lonSpan * lonSpan) / 2;
+  const radiusMeters = Math.min(Math.round(radiusDeg * 111_000), 150_000);
+  const res = await fetch(
+    `/api/cabins?lat=${center.lat.toFixed(4)}&lon=${center.lng.toFixed(4)}&radius=${radiusMeters}`,
+    { signal },
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export function CabinLayer() {
   const map = useMap();
   const [cabins, setCabins] = useState<Cabin[]>([]);
@@ -214,27 +233,14 @@ export function CabinLayer() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(null);
 
-  const fetchCabins = useCallback(async () => {
-    const center = map.getCenter();
-    const bounds = map.getBounds();
-    const latSpan = bounds.getNorth() - bounds.getSouth();
-    const lonSpan = bounds.getEast() - bounds.getWest();
-    const radiusDeg = Math.sqrt(latSpan * latSpan + lonSpan * lonSpan) / 2;
-    const radiusMeters = Math.min(Math.round(radiusDeg * 111_000), 150_000);
-
+  // setState lives in the .then() callback, not synchronously in the effect body
+  const refetch = useCallback(() => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-
-    try {
-      const res = await fetch(
-        `/api/cabins?lat=${center.lat.toFixed(4)}&lon=${center.lng.toFixed(4)}&radius=${radiusMeters}`,
-        { signal: controller.signal },
-      );
-      if (res.ok) setCabins(await res.json());
-    } catch {
-      // aborted or network error — ignore
-    }
+    loadCabinsForViewport(map, controller.signal)
+      .then(setCabins)
+      .catch(() => {});
   }, [map]);
 
   const openCabin = useCallback(
@@ -257,17 +263,17 @@ export function CabinLayer() {
   );
 
   useEffect(() => {
-    fetchCabins();
-  }, [fetchCabins]);
+    refetch();
+  }, [refetch]);
 
   useMapEvents({
     moveend() {
       setZoom(map.getZoom());
-      fetchCabins();
+      refetch();
     },
     zoomend() {
       setZoom(map.getZoom());
-      fetchCabins();
+      refetch();
     },
   });
 
