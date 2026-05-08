@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Marker, useMap, useMapEvents } from "react-leaflet";
+import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import murdersData from "@/data/murders.json";
 
@@ -23,21 +23,34 @@ interface Cluster {
   key: string;
   lat: number;
   lng: number;
-  count: number;
+  items: Murder[];
 }
 
 const murders = murdersData as Murder[];
 
-const skullIcon = L.icon({
-  iconUrl: "/skull.svg",
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16],
-});
+function makeSkullIcon(): L.DivIcon {
+  return L.divIcon({
+    html: `<img src="/skull.svg" width="32" height="32" style="display:block;pointer-events:none" />`,
+    className: "",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+}
+
+function clusterIcon(count: number): L.DivIcon {
+  const size = count > 50 ? 40 : count > 10 ? 32 : 24;
+  const fontSize = size < 30 ? 11 : 13;
+  return L.divIcon({
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#b91c1c;border:2px solid #7f1d1d;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)">${count}</div>`,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
 
 function clusterMurders(zoom: number): Cluster[] {
   const cellSize = 70 / Math.pow(2, zoom);
-  const cells = new Map<string, { latSum: number; lngSum: number; count: number }>();
+  const cells = new Map<string, { latSum: number; lngSum: number; items: Murder[] }>();
 
   for (const m of murders) {
     const lat = parseFloat(m.lat);
@@ -47,29 +60,18 @@ function clusterMurders(zoom: number): Cluster[] {
     if (existing) {
       existing.latSum += lat;
       existing.lngSum += lng;
-      existing.count++;
+      existing.items.push(m);
     } else {
-      cells.set(key, { latSum: lat, lngSum: lng, count: 1 });
+      cells.set(key, { latSum: lat, lngSum: lng, items: [m] });
     }
   }
 
-  return Array.from(cells.entries()).map(([key, { latSum, lngSum, count }]) => ({
+  return Array.from(cells.entries()).map(([key, { latSum, lngSum, items }]) => ({
     key,
-    lat: latSum / count,
-    lng: lngSum / count,
-    count,
+    lat: latSum / items.length,
+    lng: lngSum / items.length,
+    items,
   }));
-}
-
-function clusterIcon(count: number): L.DivIcon {
-  const size = count > 50 ? 44 : count > 10 ? 36 : 28;
-  const fontSize = size < 34 ? 11 : 13;
-  return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#b91c1c;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)">💀 ${count}</div>`,
-    className: "",
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
 }
 
 interface MurderDialogProps {
@@ -146,6 +148,8 @@ function MurderDialog({ murder, onClose }: MurderDialogProps) {
 }
 
 export function MurderLayer() {
+  const SKULL_ICON = useRef<L.DivIcon | null>(null);
+  if (!SKULL_ICON.current) SKULL_ICON.current = makeSkullIcon();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   const [selected, setSelected] = useState<Murder | null>(null);
@@ -156,26 +160,32 @@ export function MurderLayer() {
     },
   });
 
-  const showIndividual = zoom <= 3;
+  const clusters = zoom <= 3
+    ? murders.map((m) => ({ key: String(m.id), lat: parseFloat(m.lat), lng: parseFloat(m.lng), items: [m] }))
+    : clusterMurders(zoom);
 
   return (
     <>
-      {showIndividual
-        ? murders.map((murder) => (
-            <Marker
-              key={murder.id}
-              position={[parseFloat(murder.lat), parseFloat(murder.lng)]}
-              icon={skullIcon}
-              eventHandlers={{ click: () => setSelected(murder) }}
-            />
-          ))
-        : clusterMurders(zoom).map((cluster) => (
-            <Marker
-              key={cluster.key}
-              position={[cluster.lat, cluster.lng]}
-              icon={clusterIcon(cluster.count)}
-            />
-          ))}
+      {clusters.map((cluster) =>
+        cluster.items.length === 1 ? (
+          <Marker
+            key={cluster.key}
+            position={[cluster.lat, cluster.lng]}
+            icon={SKULL_ICON.current!}
+            eventHandlers={{ click: () => setSelected(cluster.items[0]) }}
+          >
+            <Tooltip>{cluster.items[0].fullName}</Tooltip>
+          </Marker>
+        ) : (
+          <Marker
+            key={cluster.key}
+            position={[cluster.lat, cluster.lng]}
+            icon={clusterIcon(cluster.items.length)}
+          >
+            <Tooltip>{cluster.items.length} drap</Tooltip>
+          </Marker>
+        )
+      )}
 
       {selected && (
         <MurderDialog murder={selected} onClose={() => setSelected(null)} />
