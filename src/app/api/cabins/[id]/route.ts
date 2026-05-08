@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 const UTNO_GRAPHQL =
   "https://ut-backend-api-2-41145913385.europe-north1.run.app/internal/graphql";
 
+const CLOUDINARY_BASE = "https://res.cloudinary.com/ntb/image/upload/w_800,q_80,f_auto/v1";
+
 export interface CabinDetail {
   id: number;
   name: string;
@@ -14,6 +16,25 @@ export interface CabinDetail {
   images?: { url: string; alt?: string }[];
 }
 
+const CABIN_QUERY = `
+  query CabinDetail($id: Int!) {
+    cabin(id: $id) {
+      id
+      name
+      description
+      serviceLevel
+      bedsStaffed
+      bedsSelfService
+      bedsNoService
+      media {
+        uri
+        altText
+        type
+      }
+    }
+  }
+`;
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -22,39 +43,35 @@ export async function GET(
   const numericId = parseInt(id, 10);
   if (isNaN(numericId)) return NextResponse.json(null, { status: 400 });
 
-  // Use inline query format — matches the documented curl example exactly.
-  // Parameterized queries with variables cause the API to reject the request.
-  const query = `{ cabin(id:${numericId}) { id name description serviceLevel bedsStaffed bedsSelfService bedsNoService } }`;
-
   const res = await fetch(UTNO_GRAPHQL, {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: "https://ut.no" },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: CABIN_QUERY, variables: { id: numericId } }),
   });
 
   if (!res.ok) return NextResponse.json(null, { status: 502 });
 
   const data = await res.json();
-  const cabin: CabinDetail | null = data.data?.cabin ?? null;
-  if (!cabin) return NextResponse.json(null, { status: 404 });
+  const raw = data.data?.cabin ?? null;
+  if (!raw) return NextResponse.json(null, { status: 404 });
 
-  // Attempt a second query for images — separate call so a missing field
-  // doesn't break the main cabin data.
-  try {
-    const imgQuery = `{ cabin(id:${numericId}) { images { url alt } } }`;
-    const imgRes = await fetch(UTNO_GRAPHQL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Origin: "https://ut.no" },
-      body: JSON.stringify({ query: imgQuery }),
-    });
-    if (imgRes.ok) {
-      const imgData = await imgRes.json();
-      const images = imgData.data?.cabin?.images;
-      if (Array.isArray(images)) cabin.images = images;
-    }
-  } catch {
-    // images are optional — ignore errors
-  }
+  const images = (raw.media ?? [])
+    .filter((m: { type: string }) => m.type === "cloudinary-image")
+    .map((m: { uri: string; altText?: string }) => ({
+      url: `${CLOUDINARY_BASE}/${m.uri}`,
+      alt: m.altText ?? undefined,
+    }));
+
+  const cabin: CabinDetail = {
+    id: raw.id,
+    name: raw.name,
+    description: raw.description ?? undefined,
+    serviceLevel: raw.serviceLevel ?? undefined,
+    bedsStaffed: raw.bedsStaffed ?? undefined,
+    bedsSelfService: raw.bedsSelfService ?? undefined,
+    bedsNoService: raw.bedsNoService ?? undefined,
+    images: images.length > 0 ? images : undefined,
+  };
 
   return NextResponse.json(cabin);
 }
