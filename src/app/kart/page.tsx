@@ -25,6 +25,7 @@ export default function KartPage() {
   const { trips, createTrip, saveTrip } = useTrips();
   const [focusBounds, setFocusBounds] = useState<LatLngBounds | null>(null);
   const [searchResults, setSearchResults] = useState<UtnoRoute[]>([]);
+  const [showMurders, setShowMurders] = useState(false);
 
   async function saveRouteFromMap(route: UtnoRoute) {
     const trip = createTrip(route.name);
@@ -54,6 +55,17 @@ export default function KartPage() {
             {location.lon.toFixed(4)}°E
           </span>
         )}
+        <button
+          onClick={() => setShowMurders((v) => !v)}
+          className={`ml-auto flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            showMurders
+              ? "border-red-700 bg-red-700 text-white"
+              : "border-gray-300 bg-white text-gray-600 hover:border-red-400 hover:text-red-600"
+          }`}
+        >
+          <img src="/skull.svg" width={16} height={16} alt="" />
+          Drap
+        </button>
       </header>
       <main className="relative flex-1 min-h-0 flex">
         <aside className="w-72 shrink-0 overflow-y-auto border-r bg-white p-3">
@@ -70,6 +82,7 @@ export default function KartPage() {
               focusBounds={focusBounds}
               searchResults={searchResults}
               onSaveRoute={saveRouteFromMap}
+              showMurders={showMurders}
             />
           </div>
         </div>

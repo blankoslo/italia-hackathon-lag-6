@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, Polyline, CircleMarker, Popup, useMap } from "react-leaflet";
 import { OfflineTileLayer } from "./OfflineTileLayer";
 import { CabinLayer } from "./CabinLayer";
+import { MurderLayer } from "./MurderLayer";
 import { useTrips } from "@/context/TripContext";
 import type { Location } from "@/context/LocationContext";
 import type { Trip, UtnoRoute } from "@/types/trip";
@@ -31,6 +32,7 @@ interface Props {
   focusBounds?: LatLngBounds | null;
   searchResults?: UtnoRoute[];
   onSaveRoute?: (route: UtnoRoute) => void;
+  showMurders?: boolean;
 }
 
 export function MapViewClient({
@@ -39,6 +41,7 @@ export function MapViewClient({
   focusBounds = null,
   searchResults = [],
   onSaveRoute,
+  showMurders = false,
 }: Props) {
   const { trips: savedTrips } = useTrips();
   const savedIds = new Set(savedTrips.flatMap((t) => t.routes.map((r) => r.id)));
@@ -56,6 +59,7 @@ export function MapViewClient({
     >
       <OfflineTileLayer />
       <CabinLayer />
+      {showMurders && <MurderLayer />}
       <FlyToLocation location={location} />
       <FitBounds bounds={focusBounds} />
 
