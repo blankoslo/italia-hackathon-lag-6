@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { MapContainer, Polyline, CircleMarker, Popup, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  Polyline,
+  CircleMarker,
+  Popup,
+  useMap,
+} from "react-leaflet";
 import { OfflineTileLayer } from "./OfflineTileLayer";
 import { CabinLayer } from "./CabinLayer";
 import { MurderLayer } from "./MurderLayer";
@@ -13,7 +19,8 @@ type LatLngBounds = [[number, number], [number, number]];
 function FlyToLocation({ location }: { location: Location | null }) {
   const map = useMap();
   useEffect(() => {
-    if (location) map.flyTo([location.lat, location.lon], 12, { duration: 1.5 });
+    if (location)
+      map.flyTo([location.lat, location.lon], 12, { duration: 1.5 });
   }, [location, map]);
   return null;
 }
@@ -44,17 +51,22 @@ export function MapViewClient({
   showMurders = false,
 }: Props) {
   const { trips: savedTrips } = useTrips();
-  const savedIds = new Set(savedTrips.flatMap((t) => t.routes.map((r) => r.id)));
+  const savedIds = new Set(
+    savedTrips.flatMap((t) => t.routes.map((r) => r.id)),
+  );
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function clearClose() {
-    if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
   }
 
   return (
     <MapContainer
-      center={[65.0, 15.0]}
-      zoom={5}
+      center={[60.0, 8.9]}
+      zoom={8}
       style={{ height: "100%", width: "100%" }}
     >
       <OfflineTileLayer />
@@ -73,7 +85,7 @@ export function MapViewClient({
               positions={route.coordinates!.map(([lon, lat]) => [lat, lon])}
               pathOptions={{ color: "#16a34a", weight: 3, opacity: 0.8 }}
             />
-          ))
+          )),
       )}
 
       {/* Search result routes — blue, with hover popup */}
@@ -95,7 +107,10 @@ export function MapViewClient({
                 polyline.setStyle({ weight: 3, opacity: 0.7 });
                 const el = polyline.getPopup()?.getElement();
 
-                const doClose = () => { polyline.closePopup(); closeTimer.current = null; };
+                const doClose = () => {
+                  polyline.closePopup();
+                  closeTimer.current = null;
+                };
 
                 if (el) {
                   const onEnter = () => {
@@ -147,7 +162,7 @@ export function MapViewClient({
               <span className="text-sm font-medium">{wp.name}</span>
             </Popup>
           </CircleMarker>
-        ))
+        )),
       )}
     </MapContainer>
   );

@@ -32,7 +32,7 @@ function centerOf(routes: UtnoRoute[]): { lat: number; lon: number } | null {
 
 interface Props {
   routes: UtnoRoute[];
-  tripId: string | null; // null for legacy token-based trips
+  tripId: string | null;
   initialStart?: string;
   initialEnd?: string;
 }
@@ -54,7 +54,6 @@ export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props)
       .then(setDays)
       .catch(() => {})
       .finally(() => setLoading(false));
-  // only re-fetch when center changes (routes prop)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes]);
 
@@ -90,39 +89,64 @@ export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props)
 
   if (!center) return null;
 
+  const inputStyle = {
+    background: "var(--color-surface-raised)",
+    border: "1px solid var(--color-border)",
+    borderRadius: "var(--radius-sm)",
+    color: "var(--color-text)",
+    padding: "4px 8px",
+    fontSize: "0.875rem",
+    outline: "none",
+    colorScheme: "dark" as const,
+  };
+
   return (
     <section>
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <h2
+        className="text-xs font-bold uppercase tracking-widest mb-2"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
         Vær
       </h2>
-      <div className="bg-white rounded-lg border p-4 flex flex-col gap-3">
-        {/* Date picker */}
+      <div
+        className="rounded-2xl p-4 flex flex-col gap-3"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+      >
+        {/* Date pickers */}
         <div className="flex items-center gap-2">
           <div className="flex flex-col gap-0.5 flex-1">
-            <label className="text-xs text-gray-500">Fra</label>
+            <label className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Fra</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => handleStartChange(e.target.value)}
-              className="rounded border px-2 py-1 text-sm"
+              style={inputStyle}
             />
           </div>
           <div className="flex flex-col gap-0.5 flex-1">
-            <label className="text-xs text-gray-500">Til</label>
+            <label className="text-xs" style={{ color: "var(--color-text-secondary)" }}>Til</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => handleEndChange(e.target.value)}
-              className="rounded border px-2 py-1 text-sm"
+              style={inputStyle}
             />
           </div>
-          {saving && <span className="text-xs text-gray-400 mt-4">Lagrer…</span>}
+          {saving && (
+            <span className="text-xs mt-4" style={{ color: "var(--color-text-secondary)" }}>
+              Lagrer…
+            </span>
+          )}
         </div>
 
         {loading && (
           <ul className="flex flex-col gap-1">
             {Array.from({ length: 4 }).map((_, i) => (
-              <li key={i} className="h-10 rounded bg-gray-100 animate-pulse" />
+              <li
+                key={i}
+                className="h-10 rounded-lg animate-pulse"
+                style={{ background: "var(--color-surface-raised)" }}
+              />
             ))}
           </ul>
         )}
@@ -136,19 +160,34 @@ export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props)
               return (
                 <li
                   key={d.date}
-                  className={`rounded px-3 py-2 flex items-center gap-3 ${lowReliability ? "bg-gray-50 opacity-60" : "bg-blue-50"}`}
+                  className="rounded-lg px-3 py-2 flex items-center gap-3"
+                  style={{
+                    background: lowReliability ? "var(--color-surface-raised)" : "rgba(79,89,251,0.12)",
+                    opacity: lowReliability ? 0.65 : 1,
+                  }}
                 >
                   <span className="text-xl leading-none">{emoji(d.symbol)}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{fmtDate(d.date)}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
+                      {fmtDate(d.date)}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
                       {d.tempMin}° – {d.tempMax}°C
                       {d.precipMm > 0 && ` · ${d.precipMm} mm`}
                       {` · ${d.windMax} m/s vind`}
                     </p>
                   </div>
                   {lowReliability && (
-                    <span className="shrink-0 text-[10px] rounded bg-gray-200 px-1 py-0.5 text-gray-500">usikker</span>
+                    <span
+                      className="shrink-0 text-[10px] px-1 py-0.5"
+                      style={{
+                        borderRadius: "var(--radius-sm)",
+                        background: "var(--color-surface-raised)",
+                        color: "var(--color-text-secondary)",
+                      }}
+                    >
+                      usikker
+                    </span>
                   )}
                 </li>
               );
@@ -157,14 +196,20 @@ export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props)
         )}
 
         {!loading && days.length > 0 && displayed.length === 0 && (
-          <p className="text-sm text-gray-400 italic">Ingen dager i valgt periode.</p>
+          <p className="text-sm italic" style={{ color: "var(--color-text-secondary)" }}>
+            Ingen dager i valgt periode.
+          </p>
         )}
 
         {!loading && days.length === 0 && (
-          <p className="text-sm text-gray-400 italic">Kunne ikke hente værdata.</p>
+          <p className="text-sm italic" style={{ color: "var(--color-text-secondary)" }}>
+            Kunne ikke hente værdata.
+          </p>
         )}
 
-        <p className="text-xs text-gray-400">Kilde: Yr/MET Norway</p>
+        <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+          Kilde: Yr/MET Norway
+        </p>
       </div>
     </section>
   );

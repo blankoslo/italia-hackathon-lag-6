@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friluftskompis — Design System Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Demo scaffold only — not part of styles.css */
+    .demo-page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: var(--spacing-5) var(--spacing-4) var(--spacing-8);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-7);
+    }
+    .demo-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-4);
+    }
+    .demo-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: var(--spacing-2);
+    }
+    .demo-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
+    }
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: var(--spacing-3);
+    }
+    .token-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-2);
+    }
+    .token-swatch-color {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+    .token-swatch-label {
+      font-size: 0.625rem;
+      color: var(--color-text-secondary);
+      text-align: center;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="#" aria-current="page">Utforsk</a>
+    <a href="#">Mine turer</a>
+    <a href="#">Gruppe</a>
+    <a href="#">Meg</a>
+  </nav>
+
+  <div class="demo-page">
+
+    <!-- ── Color tokens ─────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="colors-heading">
+      <p class="demo-label" id="colors-heading">Farger / Color tokens</p>
+      <div class="token-grid">
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-brand)"></div>
+          <span class="token-swatch-label">--color-brand<br>#4f59fb</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-brand-hover)"></div>
+          <span class="token-swatch-label">--color-brand-hover<br>#2f3597</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-background)"></div>
+          <span class="token-swatch-label">--color-background<br>#1a1a1a</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-surface)"></div>
+          <span class="token-swatch-label">--color-surface<br>#323232</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-surface-raised)"></div>
+          <span class="token-swatch-label">--color-surface-raised<br>#4d4d4d</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-text)"></div>
+          <span class="token-swatch-label">--color-text<br>#ffffff</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:var(--color-text-secondary)"></div>
+          <span class="token-swatch-label">--color-text-secondary<br>#a6a6a6</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:#1a5b28"></div>
+          <span class="token-swatch-label">--color-success-bg<br>#1a5b28</span>
+        </div>
+        <div class="token-swatch">
+          <div class="token-swatch-color" style="background:#5a4008"></div>
+          <span class="token-swatch-label">--color-warning-bg<br>#5a4008</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Typography ───────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="type-heading">
+      <p class="demo-label" id="type-heading">Typografi / Typography</p>
+      <div class="demo-row">
+        <h1>God morgen, Ola!</h1>
+        <h2>Rondane stortur</h2>
+        <h3>Dag 1 — Spranghaugen</h3>
+        <h4>Deltakere</h4>
+        <p>
+          Friluftskompis hjelper deg å planlegge fjelltur, finne DNT-hytter og koordinere
+          med gruppen din — alt på ett sted. Vær, rute og pakkeliste samlet i én app.
+        </p>
+        <p style="color: var(--color-text-secondary); font-size: var(--text-sm);">
+          Sekundær tekst brukes for metadata, tidsstempler og hjelpetekst som ikke er
+          primærinformasjon. Minimumsstørrelse er 12px for lesbarhet.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Buttons ──────────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="buttons-heading">
+      <p class="demo-label" id="buttons-heading">Knapper / Buttons</p>
+      <div class="demo-row">
+        <button type="button">Start ny tur</button>
+        <button type="button" class="secondary">Inviter flere</button>
+        <button type="button" disabled>Ikke tilgjengelig</button>
+        <button type="button" class="secondary" disabled>Deaktivert</button>
+      </div>
+    </section>
+
+    <!-- ── Form controls ────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="forms-heading">
+      <p class="demo-label" id="forms-heading">Skjemaelementer / Form controls</p>
+      <div class="demo-row">
+        <div>
+          <label for="search" style="display:block; font-size:var(--text-sm); font-weight:600; margin-bottom:var(--spacing-2); color:var(--color-text-secondary);">
+            Søk etter tur
+          </label>
+          <input
+            id="search"
+            type="search"
+            placeholder="Rondane, Jotunheimen, Trollheimen…"
+          />
+        </div>
+
+        <div>
+          <label for="dates" style="display:block; font-size:var(--text-sm); font-weight:600; margin-bottom:var(--spacing-2); color:var(--color-text-secondary);">
+            Tidsperiode
+          </label>
+          <input
+            id="dates"
+            type="text"
+            placeholder="13. jun — 16. jun 2026"
+          />
+        </div>
+
+        <div>
+          <label for="vanskelighet" style="display:block; font-size:var(--text-sm); font-weight:600; margin-bottom:var(--spacing-2); color:var(--color-text-secondary);">
+            Vanskelighetsgrad
+          </label>
+          <select id="vanskelighet">
+            <option value="">Velg vanskelighetsgrad</option>
+            <option value="enkel">Enkel</option>
+            <option value="middels">Middels</option>
+            <option value="krevende">Krevende</option>
+            <option value="ekstremsport">Ekstremsport</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="notat" style="display:block; font-size:var(--text-sm); font-weight:600; margin-bottom:var(--spacing-2); color:var(--color-text-secondary);">
+            Notat til gruppen
+          </label>
+          <textarea id="notat" placeholder="Husk å ta med varme klær. Vi møtes ved inngangen kl. 07:00…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Cards ────────────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="cards-heading">
+      <p class="demo-label" id="cards-heading">Kort / Cards</p>
+
+      <div class="card">
+        <h3 style="font-size:var(--text-md); margin-bottom:var(--spacing-2);">Rondane stortur</h3>
+        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-bottom:var(--spacing-3);">
+          13.–16. juni · 3 deltakere · 42 km
+        </p>
+        <div style="display:flex; gap:var(--spacing-2); flex-wrap:wrap;">
+          <span style="background:var(--color-brand-subtle); border:1px solid var(--color-brand-border); color:var(--color-brand); font-size:var(--text-sm); font-weight:600; padding:4px 10px; border-radius:var(--radius-full);">
+            Planlagt
+          </span>
+          <span style="background:var(--color-success-bg); color:var(--color-success-text); font-size:var(--text-sm); font-weight:600; padding:4px 10px; border-radius:var(--radius-full);">
+            3 bekreftet
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:var(--text-md); margin-bottom:var(--spacing-2);">Jotunheimen nord</h3>
+        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-bottom:var(--spacing-3);">
+          August 2025 · 2 deltakere · 58 km
+        </p>
+        <span style="background:var(--color-surface-raised); color:var(--color-text-secondary); font-size:var(--text-sm); font-weight:600; padding:4px 10px; border-radius:var(--radius-full);">
+          Fullført
+        </span>
+      </div>
+    </section>
+
+    <!-- ── Links ────────────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="links-heading">
+      <p class="demo-label" id="links-heading">Lenker / Links</p>
+      <div class="demo-row">
+        <p>
+          Les mer om <a href="#">DNT-hytter i Rondane</a> og finn ruter som passer
+          for hele gruppen. Se også <a href="#">vær fra Yr</a> for turen.
+        </p>
+        <p>
+          <a href="#">Vis pakkeliste →</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Lists ────────────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="lists-heading">
+      <p class="demo-label" id="lists-heading">Lister / Lists</p>
+      <div class="card">
+        <ul>
+          <li>Ullundertøy (2 sett)</li>
+          <li>Regnjakke og regnbukse</li>
+          <li>Varme hansker og lue</li>
+          <li>Kart og kompass</li>
+          <li>Tørmat for 4 dager</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ── Spacing ──────────────────────────────────────── -->
+    <section class="demo-section" aria-labelledby="spacing-heading">
+      <p class="demo-label" id="spacing-heading">Avstand / Spacing tokens</p>
+      <div style="display:flex; flex-direction:column; gap:var(--spacing-2);">
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-1); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-1: 4px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-2); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-2: 8px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-3); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-3: 12px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-4); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-4: 16px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-5); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-5: 24px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-6); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-6: 32px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-7); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-7: 48px</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:var(--spacing-3);">
+          <div style="width:var(--spacing-8); height:16px; background:var(--color-brand); border-radius:2px; flex-shrink:0;"></div>
+          <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">--spacing-8: 96px</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>Friluftskompis · Hackathon 2026</p>
+    <p style="margin-top:var(--spacing-1);">
+      Værdata: <a href="#">Yr / api.met.no</a> · Kart: <a href="#">© Kartverket</a>
+    </p>
+  </footer>
+
+</body>
+</html>

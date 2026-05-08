@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleMarker, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import type { CabinDetail } from "@/app/api/cabins/[id]/route";
 
@@ -68,10 +68,20 @@ function clusterIcon(count: number): L.DivIcon {
   const size = count > 20 ? 40 : count > 5 ? 32 : 24;
   const fontSize = size < 30 ? 11 : 13;
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#f59e0b;border:2px solid #92400e;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;color:#1c1917;box-shadow:0 1px 3px rgba(0,0,0,.35)">${count}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#4f59fb;border:2px solid #2f3597;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.5)">${count}</div>`,
     className: "",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
+  });
+}
+
+function makeCabinIcon(): L.DivIcon {
+  const svg = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="31" height="31" rx="11.5" fill="#4D4D4D"/><rect x="0.5" y="0.5" width="31" height="31" rx="11.5" stroke="#D9D9D9"/><path d="M10 23H22V21H10V23ZM10 19H22V17H10V19ZM10 15H22V14.1L20.55 13H11.45L10 14.1V15ZM14.05 11H17.95L16 9.525L14.05 11ZM8 25V15.625L6.2 17L5 15.4L8 13.1V10H10V11.575L16 7L27 15.4L25.8 16.975L24 15.625V25H8ZM8 9C8 8.16667 8.29167 7.45833 8.875 6.875C9.45833 6.29167 10.1667 6 11 6C11.2833 6 11.5208 5.90417 11.7125 5.7125C11.9042 5.52083 12 5.28333 12 5H14C14 5.83333 13.7083 6.54167 13.125 7.125C12.5417 7.70833 11.8333 8 11 8C10.7167 8 10.4792 8.09583 10.2875 8.2875C10.0958 8.47917 10 8.71667 10 9H8Z" fill="#D9D9D9"/></svg>`;
+  return L.divIcon({
+    html: `<div style="display:block;pointer-events:none">${svg}</div>`,
+    className: "",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 }
 
@@ -109,15 +119,22 @@ function CabinDialog({ cabin, detail, loading, onClose }: CabinDialogProps) {
       ref={dialogRef}
       onClose={onClose}
       onClick={handleBackdropClick}
-      className="m-auto w-full max-w-lg max-h-[85vh] rounded-xl shadow-2xl p-0 overflow-hidden backdrop:bg-black/50"
+      className="m-auto w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl p-0 overflow-hidden backdrop:bg-black/60"
+      style={{ background: "var(--color-surface)", color: "var(--color-text)", border: "1px solid var(--color-border)" }}
     >
       <div className="flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-gray-200 shrink-0">
-          <h2 className="text-lg font-bold text-gray-900 leading-snug">{cabin.name}</h2>
+        <div
+          className="flex items-start justify-between gap-3 px-5 py-4 shrink-0"
+          style={{ borderBottom: "1px solid var(--color-border)" }}
+        >
+          <h2 className="text-lg font-bold leading-snug" style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}>
+            {cabin.name}
+          </h2>
           <button
             onClick={() => dialogRef.current?.close()}
-            className="shrink-0 rounded-full p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="shrink-0 rounded-full p-1 transition-colors"
+            style={{ color: "var(--color-text-secondary)" }}
             aria-label="Lukk"
           >
             <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -129,7 +146,9 @@ function CabinDialog({ cabin, detail, loading, onClose }: CabinDialogProps) {
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
           {loading && (
-            <p className="text-sm text-gray-500 animate-pulse">Laster detaljer…</p>
+            <p className="text-sm animate-pulse" style={{ color: "var(--color-text-secondary)" }}>
+              Laster detaljer…
+            </p>
           )}
 
           {!loading && detail && (
@@ -139,21 +158,29 @@ function CabinDialog({ cabin, detail, loading, onClose }: CabinDialogProps) {
                 <img
                   src={image.url}
                   alt={image.alt ?? detail.name}
-                  className="w-full h-52 object-cover rounded-lg"
+                  className="w-full h-52 object-cover rounded-xl"
                 />
               )}
 
               {level && (
-                <span className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <span
+                  className="inline-block text-xs font-semibold px-3 py-1"
+                  style={{
+                    background: "var(--color-brand-subtle)",
+                    color: "var(--color-brand)",
+                    border: "1px solid var(--color-brand-border)",
+                    borderRadius: "var(--radius-full)",
+                  }}
+                >
                   {level}
                 </span>
               )}
 
               {beds.length > 0 && (
-                <ul className="text-sm text-gray-600 space-y-1">
+                <ul className="text-sm space-y-1" style={{ color: "var(--color-text-secondary)" }}>
                   {beds.map((b) => (
                     <li key={b} className="flex items-center gap-1.5">
-                      <span className="text-amber-600">&#9679;</span>
+                      <span style={{ color: "var(--color-brand)" }}>&#9679;</span>
                       {b}
                     </li>
                   ))}
@@ -161,11 +188,11 @@ function CabinDialog({ cabin, detail, loading, onClose }: CabinDialogProps) {
               )}
 
               {detail.description ? (
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--color-text-secondary)" }}>
                   {detail.description.replace(/<\/?p>/g, "").trim()}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm italic" style={{ color: "var(--color-text-disabled)" }}>
                   Ingen beskrivelse tilgjengelig.
                 </p>
               )}
@@ -192,9 +219,6 @@ async function loadCabinsForViewport(map: L.Map, signal: AbortSignal): Promise<C
   return res.json();
 }
 
-// ~1rem diameter (16px)
-const CABIN_RADIUS = 8;
-
 export function CabinLayer() {
   const map = useMap();
   const [cabins, setCabins] = useState<Cabin[]>([]);
@@ -203,6 +227,8 @@ export function CabinLayer() {
   const [detailCache, setDetailCache] = useState<Map<string, CabinDetail>>(new Map());
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(null);
+  const cabinIconRef = useRef<L.DivIcon | null>(null);
+  if (!cabinIconRef.current) cabinIconRef.current = makeCabinIcon();
 
   const refetch = useCallback(() => {
     abortRef.current?.abort();
@@ -253,20 +279,14 @@ export function CabinLayer() {
     <>
       {zoom >= 10
         ? cabins.map((cabin) => (
-            <CircleMarker
+            <Marker
               key={cabin.id}
-              center={[cabin.lat, cabin.lon]}
-              radius={CABIN_RADIUS}
-              pathOptions={{
-                color: "#92400e",
-                fillColor: "#f59e0b",
-                fillOpacity: 0.9,
-                weight: 1.5,
-              }}
+              position={[cabin.lat, cabin.lon]}
+              icon={cabinIconRef.current!}
               eventHandlers={{ click: () => openCabin(cabin) }}
             >
               <Tooltip>{cabin.name}</Tooltip>
-            </CircleMarker>
+            </Marker>
           ))
         : clusterCabins(cabins, zoom).map((cluster) => (
             <Marker

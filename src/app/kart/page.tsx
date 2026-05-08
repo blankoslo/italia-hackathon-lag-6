@@ -15,7 +15,7 @@ const MapViewClient = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-full w-full animate-pulse bg-gray-200" />
+      <div className="h-full w-full animate-pulse" style={{ background: "var(--color-surface)" }} />
     ),
   }
 );
@@ -43,32 +43,54 @@ export default function KartPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="flex items-center gap-4 bg-white px-4 py-3 shadow-sm">
-        <h1 className="text-lg font-bold whitespace-nowrap">Friluftskompis</h1>
+    <div className="flex h-screen flex-col" style={{ background: "var(--color-background)" }}>
+      <header
+        className="flex items-center gap-4 px-4 py-3"
+        style={{
+          background: "var(--color-surface)",
+          borderBottom: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <h1
+          className="text-lg font-semibold whitespace-nowrap"
+          style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
+        >
+          Friluftskompis
+        </h1>
         <div className="w-80">
           <LocationSearch />
         </div>
         {location && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
             {location.name} &mdash; {location.lat.toFixed(4)}°N,{" "}
             {location.lon.toFixed(4)}°E
           </span>
         )}
         <button
           onClick={() => setShowMurders((v) => !v)}
-          className={`ml-auto flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-            showMurders
-              ? "border-red-700 bg-red-700 text-white"
-              : "border-gray-300 bg-white text-gray-600 hover:border-red-400 hover:text-red-600"
-          }`}
+          className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors"
+          style={{
+            borderRadius: "var(--radius-full)",
+            border: showMurders
+              ? "1px solid var(--color-brand)"
+              : "1px solid var(--color-border)",
+            background: showMurders ? "var(--color-brand)" : "transparent",
+            color: showMurders ? "#fff" : "var(--color-text-secondary)",
+          }}
         >
           <img src="/skull.svg" width={16} height={16} alt="" />
           Drap
         </button>
       </header>
       <main className="relative flex-1 min-h-0 flex">
-        <aside className="w-72 shrink-0 overflow-y-auto border-r bg-white p-3">
+        <aside
+          className="w-72 shrink-0 overflow-y-auto p-3"
+          style={{
+            background: "var(--color-background)",
+            borderRight: "1px solid var(--color-border)",
+          }}
+        >
           <RouteSearch
             onFocus={setFocusBounds}
             onResultsChange={setSearchResults}

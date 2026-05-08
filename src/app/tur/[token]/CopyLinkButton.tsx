@@ -13,7 +13,13 @@ export function CopyLinkButton() {
   return (
     <button
       onClick={handleCopy}
-      className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      className="px-4 py-2 text-sm font-semibold transition-colors"
+      style={{
+        background: copied ? "var(--color-success-bg)" : "transparent",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-md)",
+        color: copied ? "var(--color-success-text)" : "var(--color-text-secondary)",
+      }}
     >
       {copied ? "Kopiert!" : "Kopier lenke"}
     </button>

@@ -10,19 +10,22 @@ import type { UtnoRoute, Trip } from "@/types/trip";
 
 type LatLngBounds = [[number, number], [number, number]];
 
-const DIFFICULTY_LABELS: Record<string, { label: string; className: string }> = {
-  EASY:       { label: "Enkel",          className: "bg-green-100 text-green-800" },
-  MODERATE:   { label: "Middels",        className: "bg-yellow-100 text-yellow-800" },
-  TOUGH:      { label: "Krevende",       className: "bg-orange-100 text-orange-800" },
-  VERY_TOUGH: { label: "Meget krevende", className: "bg-red-100 text-red-800" },
+const DIFFICULTY_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  EASY:       { label: "Enkel",          color: "#c8f7c5", bg: "var(--color-success-bg)" },
+  MODERATE:   { label: "Middels",        color: "var(--color-warning-text)", bg: "var(--color-warning-bg)" },
+  TOUGH:      { label: "Krevende",       color: "#ffbb99", bg: "#5a2a08" },
+  VERY_TOUGH: { label: "Meget krevende", color: "var(--color-error-text)", bg: "var(--color-error-bg)" },
 };
 
 function DifficultyChip({ difficulty }: { difficulty?: string }) {
   if (!difficulty) return null;
   const cfg = DIFFICULTY_LABELS[difficulty];
-  if (!cfg) return <span className="text-gray-400 text-xs">{difficulty}</span>;
+  if (!cfg) return <span style={{ color: "var(--color-text-secondary)", fontSize: "0.75rem" }}>{difficulty}</span>;
   return (
-    <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${cfg.className}`}>
+    <span
+      className="rounded-full px-1.5 py-0.5 text-xs font-medium"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
       {cfg.label}
     </span>
   );
@@ -70,7 +73,6 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
     setError(null);
     try {
       const { routes } = await searchRoutes(q);
-      // Search results lack duration/difficulty; fetch details so filters work.
       const enriched = await Promise.all(
         routes.map((r) => fetchRoute(r.id).catch(() => r))
       );
@@ -161,22 +163,28 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
       ? mostRestrictiveFilter(trips)
       : null;
 
+  const tabBase = "flex-1 py-1.5 text-xs font-semibold transition-colors";
+  const tabActive = { background: "var(--color-brand)", color: "#fff" };
+  const tabInactive = { background: "var(--color-surface-raised)", color: "var(--color-text-secondary)" };
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex rounded border overflow-hidden text-xs font-medium">
+      {/* Tab bar */}
+      <div
+        className="flex overflow-hidden text-xs font-medium"
+        style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}
+      >
         <button
           onClick={() => setTab("search")}
-          className={`flex-1 py-1.5 transition-colors ${
-            tab === "search" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
-          }`}
+          className={tabBase}
+          style={tab === "search" ? tabActive : tabInactive}
         >
           Søk
         </button>
         <button
           onClick={() => setTab("classic")}
-          className={`flex-1 py-1.5 transition-colors ${
-            tab === "classic" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
-          }`}
+          className={tabBase}
+          style={tab === "classic" ? tabActive : tabInactive}
         >
           Klassiske ruter
         </button>
@@ -187,29 +195,44 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
       )}
 
       {tab === "search" && (
-      <form onSubmit={handleSearch}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Søk turruter på ut.no…"
-          className="w-full rounded border px-2 py-1 text-sm"
-        />
-      </form>
+        <form onSubmit={handleSearch}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Søk turruter på ut.no…"
+            className="w-full text-sm px-3 py-2"
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-surface-raised)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--color-text)",
+              outline: "none",
+            }}
+          />
+        </form>
       )}
 
       {tab === "search" && (
         <>
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {error && (
+            <p className="text-xs" style={{ color: "var(--color-error-text)" }}>
+              {error}
+            </p>
+          )}
 
           {loading && (
             <ul className="flex flex-col gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <li key={i} className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2">
+                <li
+                  key={i}
+                  className="flex items-start justify-between gap-2 p-2"
+                  style={{ borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}
+                >
                   <div className="flex flex-col gap-1.5 flex-1">
-                    <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse" />
-                    <div className="h-3 w-1/3 rounded bg-gray-200 animate-pulse" />
+                    <div className="h-3 w-3/4 rounded animate-pulse" style={{ background: "var(--color-surface-raised)" }} />
+                    <div className="h-3 w-1/3 rounded animate-pulse" style={{ background: "var(--color-surface-raised)" }} />
                   </div>
-                  <div className="h-5 w-10 shrink-0 rounded bg-gray-200 animate-pulse" />
+                  <div className="h-5 w-10 shrink-0 rounded animate-pulse" style={{ background: "var(--color-surface-raised)" }} />
                 </li>
               ))}
             </ul>
@@ -217,7 +240,9 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
 
           {showFilters && (
             <div>
-              <p className="mb-1 text-xs font-semibold text-gray-600">Filtrer turer</p>
+              <p className="mb-1 text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+                Filtrer turer
+              </p>
               <div className="flex flex-wrap gap-1">
                 {ALL_CATEGORIES.map((cat) => {
                   const active = activeFilters.has(cat);
@@ -226,11 +251,12 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
                       key={cat}
                       onClick={() => toggle(cat)}
                       title={CATEGORY_CONFIG[cat].description}
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                        active
-                          ? "bg-green-600 text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className="px-2 py-0.5 text-xs font-medium transition-colors"
+                      style={{
+                        borderRadius: "var(--radius-full)",
+                        background: active ? "var(--color-brand)" : "var(--color-surface-raised)",
+                        color: active ? "#fff" : "var(--color-text-secondary)",
+                      }}
                     >
                       {CATEGORY_CONFIG[cat].label}
                     </button>
@@ -243,7 +269,14 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
           {results.length > 0 && (
             <div>
               {filteredResults.length === 0 ? (
-                <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+                <div
+                  className="p-2 text-xs"
+                  style={{
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--color-warning-bg)",
+                    color: "var(--color-warning-text)",
+                  }}
+                >
                   Ingen søkeresultater matcher filtrene.
                   {resultSuggestion && (
                     <button className="ml-1 underline" onClick={() => toggle(resultSuggestion)}>
@@ -256,14 +289,17 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
                   {filteredResults.map((route) => (
                     <li
                       key={route.id}
-                      className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2 text-xs cursor-pointer hover:bg-gray-100"
+                      className="flex items-start justify-between gap-2 p-2 text-xs cursor-pointer transition-colors"
+                      style={{ borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}
                       onClick={() => handleFocusRoute(route)}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-surface-raised)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "var(--color-surface)")}
                     >
                       <div>
-                        <p className="font-medium">{route.name}</p>
+                        <p className="font-medium" style={{ color: "var(--color-text)" }}>{route.name}</p>
                         <div className="flex items-center gap-1 mt-0.5">
                           {route.distanceKm != null && (
-                            <span className="text-gray-500">{route.distanceKm.toFixed(1)} km</span>
+                            <span style={{ color: "var(--color-text-secondary)" }}>{route.distanceKm.toFixed(1)} km</span>
                           )}
                           <DifficultyChip difficulty={route.difficulty} />
                         </div>
@@ -271,7 +307,12 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleSave(route); }}
                         disabled={savedIds.has(route.id)}
-                        className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300"
+                        className="shrink-0 px-2 py-0.5 text-xs text-white font-semibold transition-opacity disabled:opacity-40"
+                        style={{
+                          background: savedIds.has(route.id) ? "var(--color-surface-raised)" : "var(--color-brand)",
+                          borderRadius: "var(--radius-sm)",
+                          color: savedIds.has(route.id) ? "var(--color-text-secondary)" : "#fff",
+                        }}
                       >
                         {savedIds.has(route.id) ? "Lagret" : "Lagre"}
                       </button>
@@ -286,10 +327,19 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
 
       {trips.length > 0 && (
         <div>
-          <p className="mb-1 text-xs font-semibold text-gray-600">Mine turer (lagret offline)</p>
+          <p className="mb-1 text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+            Mine turer (lagret offline)
+          </p>
 
           {filteredTrips.length === 0 ? (
-            <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+            <div
+              className="p-2 text-xs"
+              style={{
+                borderRadius: "var(--radius-sm)",
+                background: "var(--color-warning-bg)",
+                color: "var(--color-warning-text)",
+              }}
+            >
               Ingen turer matcher filtrene.
               {tripSuggestion && (
                 <button className="ml-1 underline" onClick={() => toggle(tripSuggestion)}>
@@ -302,22 +352,31 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
               {filteredTrips.map((trip) => (
                 <li
                   key={trip.id}
-                  className="flex items-center justify-between rounded bg-green-50 px-2 py-1 text-xs cursor-pointer hover:bg-green-100"
+                  className="flex items-center justify-between px-2 py-1.5 text-xs cursor-pointer transition-colors"
+                  style={{
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--color-success-bg)",
+                  }}
                   onClick={() => handleFocusTrip(trip)}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  <span className="truncate flex-1">{trip.name}</span>
+                  <span className="truncate flex-1 font-medium" style={{ color: "var(--color-success-text)" }}>
+                    {trip.name}
+                  </span>
                   <div className="flex items-center gap-1 ml-1 shrink-0">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleShare(trip); }}
-                      title="Kopier delingslenke"
+                      title="Opprett delingslenke"
                       disabled={sharingId === trip.id}
-                      className="rounded bg-green-600 px-2 py-0.5 text-white hover:bg-green-700 text-xs disabled:opacity-60"
+                      className="px-2 py-0.5 text-xs font-semibold text-white transition-opacity disabled:opacity-60"
+                      style={{ background: "var(--color-brand)", borderRadius: "var(--radius-sm)" }}
                     >
                       {sharingId === trip.id ? "…" : "Opprett tur"}
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteTrip(trip.id); }}
-                      className="text-gray-400 hover:text-red-500"
+                      style={{ color: "var(--color-text-secondary)" }}
                     >
                       ✕
                     </button>

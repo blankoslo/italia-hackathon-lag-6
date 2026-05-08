@@ -52,9 +52,9 @@ function ElevationProfile({ elevations }: { elevations: number[] }) {
         <polygon points={`0,${H} ${pts} ${W},${H}`} fill="url(#elev-grad)" />
         <polyline points={pts} fill="none" stroke="#3b82f6" strokeWidth="1.5" />
       </svg>
-      <div className="flex justify-between text-[10px] text-gray-400 leading-none mt-0.5">
+      <div className="flex justify-between text-[10px] leading-none mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
         <span>{minEl.toFixed(0)} moh.</span>
-        <span className="text-center text-gray-500">Høydeprofil</span>
+        <span className="text-center">Høydeprofil</span>
         <span>{maxEl.toFixed(0)} moh.</span>
       </div>
     </div>
@@ -200,11 +200,11 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
         Velg en klassisk norsk hyttetur for å se alle etapper, hytter og høydeprofil på kartet.
       </p>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs" style={{ color: "var(--color-error-text)" }}>{error}</p>}
 
       <ul className="flex flex-col gap-2">
         {CLASSIC_ROUTES.map(cr => {
@@ -212,48 +212,66 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
           const isLoading = loadingId === cr.id;
           const isSelected = selectedId === cr.id;
           const badge = DIFFICULTY_BADGE[cr.difficulty];
-          const dotColor = DIFFICULTY_COLORS[cr.difficulty] ?? "bg-gray-400";
 
           return (
             <li
               key={cr.id}
-              className={`rounded border bg-white p-2 text-xs cursor-pointer transition-colors ${
-                isSelected ? "border-blue-500 shadow-sm" : "hover:border-blue-300"
-              }`}
+              className="p-2 text-xs cursor-pointer transition-colors"
+              style={{
+                background: "var(--color-surface)",
+                border: isSelected ? "1px solid var(--color-brand)" : "1px solid var(--color-border)",
+                borderRadius: "var(--radius-sm)",
+                color: "var(--color-text)",
+              }}
               onClick={() => handleSelect(cr)}
             >
               {/* Header row */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-semibold">{cr.name}</span>
+                    <span className="font-semibold" style={{ color: "var(--color-text)" }}>{cr.name}</span>
                     {cr.multiDay && (
-                      <span className="rounded-full bg-purple-100 text-purple-800 px-1.5 py-0.5 text-[10px] font-medium">
+                      <span
+                        className="px-1.5 py-0.5 text-[10px] font-medium"
+                        style={{
+                          borderRadius: "var(--radius-full)",
+                          background: "var(--color-brand-subtle)",
+                          color: "var(--color-brand)",
+                          border: "1px solid var(--color-brand-border)",
+                        }}
+                      >
                         {cr.durationDays} dager
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-400 text-[11px]">{cr.area}</p>
-                  <p className="text-gray-600 mt-0.5 leading-snug">{cr.tagline}</p>
+                  <p className="text-[11px]" style={{ color: "var(--color-text-secondary)" }}>{cr.area}</p>
+                  <p className="mt-0.5 leading-snug" style={{ color: "var(--color-text-secondary)" }}>{cr.tagline}</p>
 
                   {/* Stats row */}
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${badge.className}`}>
                       {badge.label}
                     </span>
-                    <span className="text-gray-400">
+                    <span style={{ color: "var(--color-text-secondary)" }}>
                       {loaded
                         ? `${(loaded.composite.distanceKm ?? cr.totalDistanceKm).toFixed(1)} km`
                         : `~${cr.totalDistanceKm} km`}
                     </span>
-                    {cr.durationHours && <span className="text-gray-400">{cr.durationHours} t</span>}
+                    {cr.durationHours && (
+                      <span style={{ color: "var(--color-text-secondary)" }}>{cr.durationHours} t</span>
+                    )}
                   </div>
                 </div>
 
                 <button
                   onClick={e => handleSave(cr, e)}
                   disabled={savedIds.has(cr.id) || isLoading}
-                  className="shrink-0 self-start rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300 hover:bg-blue-700"
+                  className="shrink-0 self-start px-2 py-0.5 text-white font-semibold transition-opacity disabled:opacity-40"
+                  style={{
+                    background: savedIds.has(cr.id) ? "var(--color-surface-raised)" : "var(--color-brand)",
+                    borderRadius: "var(--radius-sm)",
+                    color: savedIds.has(cr.id) ? "var(--color-text-secondary)" : "#fff",
+                  }}
                 >
                   {savedIds.has(cr.id) ? "Lagret" : isLoading ? "…" : "Lagre"}
                 </button>
@@ -262,29 +280,35 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
               {/* Loading skeleton */}
               {isLoading && (
                 <div className="mt-2 space-y-1.5">
-                  <div className="h-2 w-2/3 rounded bg-gray-100 animate-pulse" />
-                  <div className="h-9 w-full rounded bg-gray-100 animate-pulse" />
+                  <div className="h-2 w-2/3 rounded animate-pulse" style={{ background: "var(--color-surface-raised)" }} />
+                  <div className="h-9 w-full rounded animate-pulse" style={{ background: "var(--color-surface-raised)" }} />
                 </div>
               )}
 
               {/* Loaded: per-leg stages + elevation profile */}
               {loaded && (
                 <div className="mt-2 space-y-2">
-                  {/* Cabin waypoint chain */}
                   <div className="flex flex-col gap-1">
                     {loaded.legs.map((leg, i) => {
-                      const legBadge = DIFFICULTY_BADGE[leg.route.difficulty ?? ""] ;
+                      const legBadge = DIFFICULTY_BADGE[leg.route.difficulty ?? ""];
                       return (
                         <div key={leg.route.id} className="flex items-start gap-1.5">
                           <div className="flex flex-col items-center pt-0.5">
-                            <div className={`w-2 h-2 rounded-full border-2 border-white ring-1 ring-gray-300 ${i === 0 ? "bg-green-500" : dotColor}`} />
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{
+                                background: i === 0 ? "var(--color-success-text)" : "var(--color-brand)",
+                                border: "2px solid var(--color-surface)",
+                                boxShadow: "0 0 0 1px var(--color-border)",
+                              }}
+                            />
                             {i < loaded.legs.length - 1 && (
-                              <div className="w-px flex-1 bg-gray-200 my-0.5" style={{ minHeight: 12 }} />
+                              <div className="w-px flex-1 my-0.5" style={{ background: "var(--color-border)", minHeight: 12 }} />
                             )}
                           </div>
                           <div className="flex-1 min-w-0 pb-1">
                             <div className="flex items-center gap-1 flex-wrap">
-                              <span className="font-medium text-[11px]">
+                              <span className="font-medium text-[11px]" style={{ color: "var(--color-text)" }}>
                                 {i === 0 ? leg.fromCabin : ""}{i === 0 ? " → " : ""}{leg.toCabin}
                               </span>
                               {legBadge && (
@@ -293,7 +317,7 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                            <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
                               {leg.route.distanceKm != null && (
                                 <span>{leg.route.distanceKm.toFixed(1)} km</span>
                               )}
@@ -305,16 +329,21 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
                         </div>
                       );
                     })}
-                    {/* Final destination dot */}
                     <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full border-2 border-white ring-1 ring-gray-300 ${dotColor}`} />
-                      <span className="text-[11px] text-gray-500">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          background: "var(--color-brand)",
+                          border: "2px solid var(--color-surface)",
+                          boxShadow: "0 0 0 1px var(--color-border)",
+                        }}
+                      />
+                      <span className="text-[11px]" style={{ color: "var(--color-text-secondary)" }}>
                         {loaded.legs[loaded.legs.length - 1]?.toCabin}
                       </span>
                     </div>
                   </div>
 
-                  {/* Elevation profile */}
                   {loaded.composite.elevations && loaded.composite.elevations.length > 1 && (
                     <ElevationProfile elevations={loaded.composite.elevations} />
                   )}

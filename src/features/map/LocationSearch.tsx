@@ -60,7 +60,6 @@ export function LocationSearch() {
     setTimeout(() => setResults([]), 150);
   }
 
-  // Group results by category
   const grouped = results.reduce<Partial<Record<SearchResult["category"], SearchResult[]>>>(
     (acc, r) => ({ ...acc, [r.category]: [...(acc[r.category] ?? []), r] }),
     {}
@@ -75,27 +74,58 @@ export function LocationSearch() {
         onChange={(e) => setQuery(e.target.value)}
         onBlur={handleBlur}
         placeholder="Søk etter sted, hytte eller fjelltopp…"
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 text-sm"
+        style={{
+          background: "var(--color-surface-raised)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "var(--radius-md)",
+          color: "var(--color-text)",
+          outline: "none",
+        }}
       />
       {isLoading && (
-        <p className="absolute right-3 top-2 text-xs text-gray-400">Søker…</p>
+        <p
+          className="absolute right-3 top-2 text-xs"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Søker…
+        </p>
       )}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs" style={{ color: "var(--color-error-text)" }}>
+          {error}
+        </p>
+      )}
 
       {results.length > 0 && (
-        <ul className="absolute z-[2000] mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-80 overflow-y-auto">
+        <ul
+          className="absolute z-[2000] mt-1 w-full max-h-80 overflow-y-auto"
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-md)",
+            boxShadow: "var(--shadow-md)",
+          }}
+        >
           {categoryOrder.flatMap((cat) => {
             const items = grouped[cat];
             if (!items?.length) return [];
             return [
-              <li key={`header-${cat}`} className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              <li
+                key={`header-${cat}`}
+                className="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 {CATEGORY_LABEL[cat]}
               </li>,
               ...items.map((r) => (
                 <li
                   key={r.id}
                   onMouseDown={(e) => { e.preventDefault(); handleSelect(r); }}
-                  className="cursor-pointer px-4 py-2 text-sm hover:bg-blue-50"
+                  className="cursor-pointer px-4 py-2 text-sm transition-colors"
+                  style={{ color: "var(--color-text)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-surface-raised)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   {r.name}
                 </li>

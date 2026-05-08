@@ -56,19 +56,37 @@ export function RSVPSection({ tripId, initial, alreadyJoined: initialJoined }: P
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <h2
+        className="text-xs font-bold uppercase tracking-widest mb-2"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
         Deltakere
       </h2>
 
       {participants.length > 0 && (
         <ul className="mb-3 flex flex-col gap-1">
           {participants.map((p) => (
-            <li key={p.id} className="flex items-center gap-2 bg-white rounded-lg border px-4 py-2 text-sm">
-              <span className="h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-bold shrink-0">
+            <li
+              key={p.id}
+              className="flex items-center gap-2 px-4 py-2 text-sm"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+              }}
+            >
+              <span
+                className="h-7 w-7 flex items-center justify-center text-xs font-bold shrink-0"
+                style={{
+                  borderRadius: "var(--radius-full)",
+                  background: "var(--color-brand)",
+                  color: "#fff",
+                }}
+              >
                 {p.name.charAt(0).toUpperCase()}
               </span>
-              <span className="font-medium">{p.name}</span>
-              <span className="ml-auto text-xs text-gray-400">
+              <span className="font-medium" style={{ color: "var(--color-text)" }}>{p.name}</span>
+              <span className="ml-auto text-xs" style={{ color: "var(--color-text-secondary)" }}>
                 {new Date(p.joinedAt).toLocaleDateString("nb-NO")}
               </span>
             </li>
@@ -77,7 +95,15 @@ export function RSVPSection({ tripId, initial, alreadyJoined: initialJoined }: P
       )}
 
       {joined ? (
-        <p className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 font-medium">
+        <p
+          className="px-4 py-3 text-sm font-medium"
+          style={{
+            borderRadius: "var(--radius-md)",
+            background: "var(--color-success-bg)",
+            color: "var(--color-success-text)",
+            border: "1px solid rgba(200,247,197,0.2)",
+          }}
+        >
           Du er påmeldt!
         </p>
       ) : (
@@ -86,18 +112,33 @@ export function RSVPSection({ tripId, initial, alreadyJoined: initialJoined }: P
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Skriv inn navnet ditt…"
-            className="flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="flex-1 px-3 py-2 text-sm"
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-surface-raised)",
+              borderRadius: "var(--radius-md)",
+              color: "var(--color-text)",
+              outline: "none",
+            }}
           />
           <button
             type="submit"
             disabled={loading || !name.trim()}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
+            style={{
+              background: "var(--color-brand)",
+              borderRadius: "var(--radius-md)",
+            }}
           >
             {loading ? "…" : "Bli med"}
           </button>
         </form>
       )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs" style={{ color: "var(--color-error-text)" }}>
+          {error}
+        </p>
+      )}
     </section>
   );
 }
