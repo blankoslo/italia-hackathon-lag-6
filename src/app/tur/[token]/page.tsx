@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { decodeShareToken } from "@/lib/tripShare";
@@ -5,6 +6,8 @@ import { getStoredTrip } from "@/lib/tripStore";
 import { TripMap } from "./TripMap";
 import { RSVPSection } from "./RSVPSection";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { TripWeather } from "./TripWeather";
+import { PackingList } from "./PackingList";
 import type { UtnoRoute } from "@/types/trip";
 import type { StoredTrip } from "@/lib/tripStore";
 
@@ -144,14 +147,24 @@ export default async function SharedTripPage({
           </section>
         )}
 
-        {/* Packing list — placeholder for P1 */}
+        {/* Weather — B1 */}
+        <TripWeather
+          routes={routes}
+          tripId={storedTrip?.id ?? null}
+          initialStart={startDate}
+          initialEnd={endDate}
+        />
+
+        {/* Packing list — P1 */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
             Pakkeliste
           </h2>
-          <div className="bg-white rounded-lg border p-4 text-sm text-gray-400 italic">
-            Pakkeliste genereres når turen er klar.
-          </div>
+            <PackingList
+              routes={routes}
+              startDate={startDate}
+              participantCount={storedTrip?.participants.length ?? 1}
+            />
         </section>
 
         {/* Expenses — placeholder for R1 */}

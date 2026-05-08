@@ -37,6 +37,19 @@ export async function getStoredTrip(id: string): Promise<StoredTrip | null> {
   return store.get(id) ?? null;
 }
 
+export async function updateTripDates(
+  tripId: string,
+  startDate: string | undefined,
+  endDate: string | undefined
+): Promise<StoredTrip | null> {
+  const trip = store.get(tripId);
+  if (!trip) return null;
+  trip.startDate = startDate;
+  trip.endDate = endDate;
+  store.set(tripId, trip);
+  return trip;
+}
+
 export async function joinTrip(
   tripId: string,
   name: string
