@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, Polyline, CircleMarker, Popup, useMap } from "react-leaflet";
 import { OfflineTileLayer } from "./OfflineTileLayer";
 import { CabinLayer } from "./CabinLayer";
+import { MurderLayer } from "./MurderLayer";
 import { useTrips } from "@/context/TripContext";
 import type { Location } from "@/context/LocationContext";
 import type { Trip, UtnoRoute } from "@/types/trip";
@@ -56,6 +57,7 @@ export function MapViewClient({
     >
       <OfflineTileLayer />
       <CabinLayer />
+      <MurderLayer />
       <FlyToLocation location={location} />
       <FitBounds bounds={focusBounds} />
 
