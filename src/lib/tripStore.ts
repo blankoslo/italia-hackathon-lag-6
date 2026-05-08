@@ -2,6 +2,16 @@ export interface StoredParticipant {
   id: string;
   name: string;
   joinedAt: string;
+  stageIndices?: number[]; // which stages (0-based) they join; undefined = all stages
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  paidBy: string;       // participant name
+  splitAmong: string[]; // participant names
+  createdAt: string;
 }
 
 export interface StoredTrip {
@@ -12,6 +22,7 @@ export interface StoredTrip {
   endDate?: string;
   createdAt: string;
   participants: StoredParticipant[];
+  expenses: Expense[];
 }
 
 // Attach to global so API routes and server components share the same Map
@@ -28,6 +39,7 @@ export async function createStoredTrip(
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     participants: [],
+    expenses: [],
   };
   store.set(trip.id, trip);
   return trip;
@@ -50,9 +62,37 @@ export async function updateTripDates(
   return trip;
 }
 
+export async function addExpense(
+  tripId: string,
+  data: Pick<Expense, "description" | "amount" | "paidBy" | "splitAmong">
+): Promise<StoredTrip | null> {
+  const trip = store.get(tripId);
+  if (!trip) return null;
+  const expense: Expense = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+  };
+  trip.expenses = [...(trip.expenses ?? []), expense];
+  store.set(tripId, trip);
+  return trip;
+}
+
+export async function updateRouteIds(
+  tripId: string,
+  routeIds: string[]
+): Promise<StoredTrip | null> {
+  const trip = store.get(tripId);
+  if (!trip) return null;
+  trip.routeIds = routeIds;
+  store.set(tripId, trip);
+  return trip;
+}
+
 export async function joinTrip(
   tripId: string,
-  name: string
+  name: string,
+  stageIndices?: number[]
 ): Promise<StoredTrip | null> {
   const trip = store.get(tripId);
   if (!trip) return null;
@@ -60,6 +100,7 @@ export async function joinTrip(
     id: crypto.randomUUID(),
     name: name.trim(),
     joinedAt: new Date().toISOString(),
+    stageIndices,
   };
   trip.participants = [...trip.participants, participant];
   store.set(tripId, trip);

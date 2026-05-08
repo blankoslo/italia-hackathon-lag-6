@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { UtnoRoute } from "@/types/trip";
 import type { DaySummary } from "@/app/api/weather/route";
+import { totalTripDays } from "@/lib/routeUtils";
 
 const WEATHER_SYMBOLS: Record<string, string> = {
   clearsky_day: "☀️",        clearsky_night: "🌙",
@@ -38,6 +40,7 @@ interface Props {
 }
 
 export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props) {
+  const router = useRouter();
   const [startDate, setStartDate] = useState(initialStart ?? "");
   const [endDate, setEndDate] = useState(initialEnd ?? "");
   const [days, setDays] = useState<DaySummary[]>([]);
@@ -67,13 +70,29 @@ export function TripWeather({ routes, tripId, initialStart, initialEnd }: Props)
         body: JSON.stringify({ startDate: start, endDate: end }),
       }).catch(() => {});
       setSaving(false);
+      router.refresh();
     },
     [tripId]
   );
 
+  function addDays(isoDate: string, n: number): string {
+    const d = new Date(isoDate);
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  const multiStage = routes.length > 1;
+  const tripDays = totalTripDays(routes.map(r => r.durationMinutes));
+
   function handleStartChange(val: string) {
     setStartDate(val);
-    saveDates(val, endDate);
+    if (multiStage && val) {
+      const derived = addDays(val, tripDays - 1);
+      setEndDate(derived);
+      saveDates(val, derived);
+    } else {
+      saveDates(val, endDate);
+    }
   }
 
   function handleEndChange(val: string) {

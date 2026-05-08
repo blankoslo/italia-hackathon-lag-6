@@ -4,6 +4,7 @@ import { CLASSIC_ROUTES, DIFFICULTY_BADGE, type ClassicRoute } from "@/data/clas
 import { fetchRoute } from "./utno";
 import { useTrips } from "@/context/TripContext";
 import { downloadTilesForBounds } from "@/features/map/downloadTiles";
+import { calcElevationGain } from "@/lib/routeUtils";
 import type { UtnoRoute, RouteWaypoint } from "@/types/trip";
 
 type LatLngBounds = [[number, number], [number, number]];
@@ -185,7 +186,10 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
       }
     }
     const trip = createTrip(cr.name);
-    trip.routes = [loaded.composite];
+    trip.routes = loaded.legs.map(leg => ({
+      ...leg.route,
+      name: `${leg.fromCabin} → ${leg.toCabin}`,
+    }));
     saveTrip(trip);
     const coords = loaded.composite.coordinates ?? [];
     if (coords.length) {
@@ -265,15 +269,15 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
 
                 <button
                   onClick={e => handleSave(cr, e)}
-                  disabled={savedIds.has(cr.id) || isLoading}
+                  disabled={cr.legs.some(l => savedIds.has(l.utnoId)) || isLoading}
                   className="shrink-0 self-start px-2 py-0.5 text-white font-semibold transition-opacity disabled:opacity-40"
                   style={{
-                    background: savedIds.has(cr.id) ? "var(--color-surface-raised)" : "var(--color-brand)",
+                    background: cr.legs.some(l => savedIds.has(l.utnoId)) ? "var(--color-surface-raised)" : "var(--color-brand)",
                     borderRadius: "var(--radius-sm)",
-                    color: savedIds.has(cr.id) ? "var(--color-text-secondary)" : "#fff",
+                    color: cr.legs.some(l => savedIds.has(l.utnoId)) ? "var(--color-text-secondary)" : "#fff",
                   }}
                 >
-                  {savedIds.has(cr.id) ? "Lagret" : isLoading ? "…" : "Lagre"}
+                  {cr.legs.some(l => savedIds.has(l.utnoId)) ? "Lagret" : isLoading ? "…" : "Lagre"}
                 </button>
               </div>
 
@@ -317,13 +321,26 @@ export function ClassicRoutes({ onFocus, onResultsChange }: Props) {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--color-text-secondary)" }}>
+                            <div className="flex items-center gap-2 text-[10px] flex-wrap" style={{ color: "var(--color-text-secondary)" }}>
                               {leg.route.distanceKm != null && (
                                 <span>{leg.route.distanceKm.toFixed(1)} km</span>
                               )}
                               {leg.route.durationMinutes != null && leg.route.durationMinutes > 0 && (
                                 <span>{Math.round(leg.route.durationMinutes / 60)} t</span>
                               )}
+                              {leg.route.elevations?.length ? (() => {
+                                const gain = calcElevationGain(leg.route.elevations!);
+                                return (
+                                  <>
+                                    <span>{gain} m stigning</span>
+                                    {gain > 1000 && (
+                                      <span className="rounded-full px-1 py-0.5 text-[9px] font-medium bg-red-100 text-red-800">
+                                        Krevende
+                                      </span>
+                                    )}
+                                  </>
+                                );
+                              })() : null}
                             </div>
                           </div>
                         </div>

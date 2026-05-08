@@ -13,12 +13,12 @@ export async function POST(
     return NextResponse.json({ error: "Already joined" }, { status: 409 });
   }
 
-  const { name } = await req.json();
+  const { name, stageIndices } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "name required" }, { status: 400 });
   }
 
-  const trip = await joinTrip(id, name);
+  const trip = await joinTrip(id, name, stageIndices ?? undefined);
   if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 });
 
   const participant = trip.participants.at(-1)!;

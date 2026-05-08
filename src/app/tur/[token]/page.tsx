@@ -7,7 +7,9 @@ import { TripMap } from "./TripMap";
 import { RSVPSection } from "./RSVPSection";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { TripWeather } from "./TripWeather";
+import { TripTimeline } from "./TripTimeline";
 import { PackingList } from "./PackingList";
+import { ExpenseSection } from "./ExpenseSection";
 import type { UtnoRoute } from "@/types/trip";
 import type { StoredTrip } from "@/lib/tripStore";
 
@@ -132,6 +134,7 @@ export default async function SharedTripPage({
             tripId={storedTrip.id}
             initial={storedTrip.participants}
             alreadyJoined={alreadyJoined}
+            stageNames={routes.map(r => r.name)}
           />
         ) : (
           <section>
@@ -153,6 +156,11 @@ export default async function SharedTripPage({
         <section className="rounded-2xl overflow-hidden" style={{ height: 320, border: "1px solid var(--color-border)", boxShadow: "var(--shadow-md)" }}>
           <TripMap routes={routes} />
         </section>
+
+        {/* Day-by-day timeline — F7 B3+B6 */}
+        {routes.length > 0 && (
+          <TripTimeline routes={routes} startDate={startDate} tripId={storedTrip?.id} />
+        )}
 
         {/* Route list */}
         {routes.length > 0 && (
@@ -194,20 +202,15 @@ export default async function SharedTripPage({
           />
         </section>
 
-        {/* Expenses placeholder */}
-        <section>
-          <SectionLabel>Utgifter</SectionLabel>
-          <div
-            className="rounded-2xl p-4 text-sm italic"
-            style={{
-              background: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Ingen utgifter registrert.
-          </div>
-        </section>
+        {/* Expenses — R1 */}
+        {storedTrip && storedTrip.participants.length > 0 && (
+          <ExpenseSection
+            tripId={storedTrip.id}
+            participants={storedTrip.participants}
+            initial={storedTrip.expenses ?? []}
+            stageNames={routes.map(r => r.name)}
+          />
+        )}
       </div>
     </div>
   );
