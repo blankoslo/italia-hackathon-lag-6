@@ -23,7 +23,14 @@ describe("searchPlaces", () => {
 
   it("returns the parsed place array from the proxy response", async () => {
     const mockPlaces = [
-      { name: "Bergen", lat: 60.3928, lon: 5.3241 },
+      {
+        name: "Bergen",
+        lat: 60.3928,
+        lon: 5.3241,
+        municipality: "Bergen",
+        county: "Vestland",
+        placeType: "By",
+      },
       { name: "Bergens museum", lat: 60.3801, lon: 5.3267 },
     ];
     mockFetch.mockResolvedValueOnce({
@@ -34,7 +41,15 @@ describe("searchPlaces", () => {
     const places = await searchPlaces("Bergen");
 
     expect(places).toHaveLength(2);
-    expect(places[0]).toEqual({ name: "Bergen", lat: 60.3928, lon: 5.3241 });
+    expect(places[0]).toEqual({
+      name: "Bergen",
+      lat: 60.3928,
+      lon: 5.3241,
+      municipality: "Bergen",
+      county: "Vestland",
+      placeType: "By",
+    });
+    expect(places[1]).toMatchObject({ name: "Bergens museum" });
   });
 
   it("throws a descriptive error when the proxy responds with an error status", async () => {
