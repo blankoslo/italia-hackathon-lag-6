@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { MapContainer, Polyline, useMap } from "react-leaflet";
 import { OfflineTileLayer } from "./OfflineTileLayer";
+import { CabinLayer } from "./CabinLayer";
 import type { Location } from "@/context/LocationContext";
 import type { Trip } from "@/types/trip";
 
@@ -37,6 +38,7 @@ export function MapViewClient({ location, trips = [], focusBounds = null }: Prop
       style={{ height: "100%", width: "100%" }}
     >
       <OfflineTileLayer />
+      <CabinLayer />
       <FlyToLocation location={location} />
       <FitBounds bounds={focusBounds} />
       {trips.flatMap((trip) =>

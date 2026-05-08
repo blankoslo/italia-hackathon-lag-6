@@ -9,12 +9,20 @@ export interface UtnoRoute {
   url?: string;
 }
 
+export interface SavedCabin {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  serviceLevel?: string;
+}
+
 export interface Trip {
   id: string;
   name: string;
   startDate?: string; // ISO date
   endDate?: string;
   routes: UtnoRoute[];
-  cabinIds: string[]; // DNT cabin IDs — populated when cabin integration is added
+  cabins: SavedCabin[]; // nearby UT.no cabins, saved for offline use
   participantIds: string[];
 }

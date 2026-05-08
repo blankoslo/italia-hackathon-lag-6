@@ -47,19 +47,34 @@ export function RouteSearch({ onFocus }: Props) {
     const full = await fetchRoute(route.id);
     const trip = createTrip(route.name);
     trip.routes = [full];
-    saveTrip(trip);
 
     const coords = full.coordinates ?? [];
     if (coords.length) {
+      const centerLat = coords.reduce((s, [, lat]) => s + lat, 0) / coords.length;
+      const centerLon = coords.reduce((s, [lon]) => s + lon, 0) / coords.length;
+
+      try {
+        const res = await fetch(
+          `/api/cabins?lat=${centerLat.toFixed(4)}&lon=${centerLon.toFixed(4)}&radius=25000`
+        );
+        if (res.ok) {
+          const nearby = await res.json();
+          trip.cabins = nearby.slice(0, 10);
+        }
+      } catch {
+        // non-critical — save trip without cabins
+      }
+
       const lats = coords.map(([, lat]) => lat);
       const lons = coords.map(([lon]) => lon);
       const bounds: [[number, number], [number, number]] = [
         [Math.min(...lats), Math.min(...lons)],
         [Math.max(...lats), Math.max(...lons)],
       ];
-      // fire and forget — runs in background
       downloadTilesForBounds(bounds);
     }
+
+    saveTrip(trip);
   }
 
   function handleFocus(trip: Trip) {
