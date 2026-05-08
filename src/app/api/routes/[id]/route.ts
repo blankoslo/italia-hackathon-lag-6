@@ -67,8 +67,11 @@ export async function GET(
   if (!node) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Strip altitude, keep [lon, lat] pairs (GeoJSON standard)
-  const coordinates: [number, number][] =
-    node.geojson?.coordinates.map(([lon, lat]) => [lon, lat]) ?? [];
+  const rawCoords = node.geojson?.coordinates ?? [];
+  const coordinates: [number, number][] = rawCoords.map(([lon, lat]) => [lon, lat]);
+  const elevations: number[] = rawCoords
+    .map(([, , alt]) => alt)
+    .filter((v): v is number => typeof v === "number");
 
   return NextResponse.json({
     id: String(node.id),
@@ -81,5 +84,6 @@ export async function GET(
     durationDays: node.durationDaysAb ?? undefined,
     difficulty: node.gradingAb ?? undefined,
     coordinates,
+    elevations: elevations.length === coordinates.length ? elevations : undefined,
   });
 }

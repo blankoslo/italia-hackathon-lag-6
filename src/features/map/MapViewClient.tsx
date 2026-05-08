@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { MapContainer, Polyline, Popup, useMap } from "react-leaflet";
+import { MapContainer, Polyline, CircleMarker, Popup, useMap } from "react-leaflet";
 import { OfflineTileLayer } from "./OfflineTileLayer";
 import { CabinLayer } from "./CabinLayer";
 import { useTrips } from "@/context/TripContext";
@@ -124,6 +124,27 @@ export function MapViewClient({
             </Popup>
           </Polyline>
         ))}
+
+      {/* Cabin / waypoint markers for classic routes */}
+      {searchResults.flatMap((route) =>
+        (route.waypoints ?? []).map((wp, i) => (
+          <CircleMarker
+            key={`wp-${route.id}-${i}`}
+            center={[wp.lat, wp.lon]}
+            radius={6}
+            pathOptions={{
+              color: "#ffffff",
+              weight: 2,
+              fillColor: i === 0 ? "#16a34a" : "#2563eb",
+              fillOpacity: 1,
+            }}
+          >
+            <Popup>
+              <span className="text-sm font-medium">{wp.name}</span>
+            </Popup>
+          </CircleMarker>
+        ))
+      )}
     </MapContainer>
   );
 }

@@ -5,6 +5,7 @@ import { searchRoutes, fetchRoute } from "./utno";
 import { useTrips } from "@/context/TripContext";
 import { downloadTilesForBounds } from "@/features/map/downloadTiles";
 import { useRouteFilters, CATEGORY_CONFIG, ALL_CATEGORIES } from "./filters";
+import { ClassicRoutes } from "./ClassicRoutes";
 import type { UtnoRoute, Trip } from "@/types/trip";
 
 type LatLngBounds = [[number, number], [number, number]];
@@ -42,7 +43,10 @@ interface Props {
   onResultsChange?: (routes: UtnoRoute[]) => void;
 }
 
+type Tab = "search" | "classic";
+
 export function RouteSearch({ onFocus, onResultsChange }: Props) {
+  const [tab, setTab] = useState<Tab>("search");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UtnoRoute[]>([]);
   const [loading, setLoading] = useState(false);
@@ -159,6 +163,30 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex rounded border overflow-hidden text-xs font-medium">
+        <button
+          onClick={() => setTab("search")}
+          className={`flex-1 py-1.5 transition-colors ${
+            tab === "search" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          Søk
+        </button>
+        <button
+          onClick={() => setTab("classic")}
+          className={`flex-1 py-1.5 transition-colors ${
+            tab === "classic" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          Klassiske ruter
+        </button>
+      </div>
+
+      {tab === "classic" && (
+        <ClassicRoutes onFocus={onFocus} onResultsChange={onResultsChange} />
+      )}
+
+      {tab === "search" && (
       <form onSubmit={handleSearch}>
         <input
           value={query}
@@ -167,88 +195,93 @@ export function RouteSearch({ onFocus, onResultsChange }: Props) {
           className="w-full rounded border px-2 py-1 text-sm"
         />
       </form>
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
-
-      {loading && (
-        <ul className="flex flex-col gap-1">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <li key={i} className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2">
-              <div className="flex flex-col gap-1.5 flex-1">
-                <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse" />
-                <div className="h-3 w-1/3 rounded bg-gray-200 animate-pulse" />
-              </div>
-              <div className="h-5 w-10 shrink-0 rounded bg-gray-200 animate-pulse" />
-            </li>
-          ))}
-        </ul>
       )}
 
-      {showFilters && (
-        <div>
-          <p className="mb-1 text-xs font-semibold text-gray-600">Filtrer turer</p>
-          <div className="flex flex-wrap gap-1">
-            {ALL_CATEGORIES.map((cat) => {
-              const active = activeFilters.has(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => toggle(cat)}
-                  title={CATEGORY_CONFIG[cat].description}
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                    active
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {CATEGORY_CONFIG[cat].label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {tab === "search" && (
+        <>
+          {error && <p className="text-xs text-red-600">{error}</p>}
 
-      {results.length > 0 && (
-        <div>
-          {filteredResults.length === 0 ? (
-            <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
-              Ingen søkeresultater matcher filtrene.
-              {resultSuggestion && (
-                <button className="ml-1 underline" onClick={() => toggle(resultSuggestion)}>
-                  Fjern «{CATEGORY_CONFIG[resultSuggestion].label}»?
-                </button>
-              )}
-            </div>
-          ) : (
+          {loading && (
             <ul className="flex flex-col gap-1">
-              {filteredResults.map((route) => (
-                <li
-                  key={route.id}
-                  className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2 text-xs cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleFocusRoute(route)}
-                >
-                  <div>
-                    <p className="font-medium">{route.name}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      {route.distanceKm != null && (
-                        <span className="text-gray-500">{route.distanceKm.toFixed(1)} km</span>
-                      )}
-                      <DifficultyChip difficulty={route.difficulty} />
-                    </div>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <li key={i} className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2">
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse" />
+                    <div className="h-3 w-1/3 rounded bg-gray-200 animate-pulse" />
                   </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleSave(route); }}
-                    disabled={savedIds.has(route.id)}
-                    className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300"
-                  >
-                    {savedIds.has(route.id) ? "Lagret" : "Lagre"}
-                  </button>
+                  <div className="h-5 w-10 shrink-0 rounded bg-gray-200 animate-pulse" />
                 </li>
               ))}
             </ul>
           )}
-        </div>
+
+          {showFilters && (
+            <div>
+              <p className="mb-1 text-xs font-semibold text-gray-600">Filtrer turer</p>
+              <div className="flex flex-wrap gap-1">
+                {ALL_CATEGORIES.map((cat) => {
+                  const active = activeFilters.has(cat);
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => toggle(cat)}
+                      title={CATEGORY_CONFIG[cat].description}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                        active
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {CATEGORY_CONFIG[cat].label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {results.length > 0 && (
+            <div>
+              {filteredResults.length === 0 ? (
+                <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+                  Ingen søkeresultater matcher filtrene.
+                  {resultSuggestion && (
+                    <button className="ml-1 underline" onClick={() => toggle(resultSuggestion)}>
+                      Fjern «{CATEGORY_CONFIG[resultSuggestion].label}»?
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {filteredResults.map((route) => (
+                    <li
+                      key={route.id}
+                      className="flex items-start justify-between gap-2 rounded bg-gray-50 p-2 text-xs cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleFocusRoute(route)}
+                    >
+                      <div>
+                        <p className="font-medium">{route.name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {route.distanceKm != null && (
+                            <span className="text-gray-500">{route.distanceKm.toFixed(1)} km</span>
+                          )}
+                          <DifficultyChip difficulty={route.difficulty} />
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleSave(route); }}
+                        disabled={savedIds.has(route.id)}
+                        className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-white disabled:bg-gray-300"
+                      >
+                        {savedIds.has(route.id) ? "Lagret" : "Lagre"}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {trips.length > 0 && (
