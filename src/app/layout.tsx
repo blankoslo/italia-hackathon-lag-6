@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 export const metadata: Metadata = {
   title: "Friluftskompis",
   description: "Norwegian outdoor trip planning app",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
